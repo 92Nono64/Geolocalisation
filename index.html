@@ -169,14 +169,15 @@
 </div>
 
 <div id="page-gps" class="page-section">
-    <div class="section-separator">📍 Tracé GPS & Export</div>
+    <div class="section-separator">📍 Tracé GPS & Partage</div>
     <div id="gps-map"></div>
     <div id="gps-status" style="text-align:center; margin-bottom:10px; font-weight:bold; color:var(--primary);">GPS Inactif</div>
     <div class="gps-controls">
         <button id="btn-gps-toggle" class="btn" onclick="toggleGPS()">▶️ Démarrer le tracé</button>
-        <button id="btn-gps-share" class="btn" onclick="shareGPS()">📤 Partager</button>
+        <button id="btn-gps-share" class="btn" onclick="shareGPS()">📤 Partager ma position</button>
         <button id="btn-gps-export" class="btn" onclick="exportGPX()">💾 Exporter GPX</button>
     </div>
+    <p style="font-size: 0.75rem; text-align: center; color: #888; margin-top: 10px;">Le partage envoie un lien ouvrant cette carte sur votre position actuelle.</p>
 </div>
 
 <div id="page-newsletter" class="page-section">
@@ -227,7 +228,7 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
-// --- CATALOGUE DATA (FULL 99 ROUTES) ---
+// --- CATALOGUE DATA (ROUTES) ---
 const routes = [
   {id:"001", z:"Nord", d1:"56km", d2:"49km", u:"https://www.visugpx.com/iGnthdT0l9", t1:"Nay, Mirepeix, Lagos, Espoey, Lourenties, Arrien, Espéchède, Ouillon, Serre-Morlaas, Ousse, Assat, Baliros, Arros-Nay, Nay", t2:"Soumoulou, Limendous, Andoins, Serre-Morlaas et retour commun"},
   {id:"002", z:"Nord", d1:"72km", d2:"61km", u:"https://www.visugpx.com/t6RjuRPcRM", t1:"Nay, Baudreix, Angaïs, Ousse, Morlaas, St Jammes, Gabaston, Sedzére, Arrien, Gardéres, Luquet, Espoey, Lagos, Bois de Lagos, Bénéjacq, Coarraze, Nay", t2:"Andoins, Espoey et itinéraire commun"},
@@ -340,7 +341,7 @@ function switchPage(pageId, btnElement) {
     document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
     btnElement.classList.add('active');
     
-    const titles = {'accueil':'Accueil','catalogue':'Catalogue','gps':'GPS & Tracé','newsletter':'Infos','ffvelo':'Licence','urgence':'SOS'};
+    const titles = {'accueil':'Accueil','catalogue':'Catalogue','gps':'GPS & Partage','newsletter':'Infos','ffvelo':'Licence','urgence':'SOS'};
     document.getElementById('header-subtitle').innerText = titles[pageId];
     
     if(pageId === 'gps' && !gpsMap) initGPSMap();
@@ -353,6 +354,15 @@ function initGPSMap() {
         attribution: '© OpenStreetMap'
     }).addTo(gpsMap);
     gpsPolyline = L.polyline([], {color: '#006f3e', weight: 5}).addTo(gpsMap);
+
+    // Paramètres de partage reçus dans l'URL
+    const params = new URLSearchParams(window.location.search);
+    if (params.has('lat') && params.has('lon')) {
+        const plat = parseFloat(params.get('lat'));
+        const plon = parseFloat(params.get('lon'));
+        L.marker([plat, plon]).addTo(gpsMap).bindPopup("Position reçue").openPopup();
+        gpsMap.setView([plat, plon], 15);
+    }
 }
 
 function toggleGPS() {
@@ -381,7 +391,7 @@ function toggleGPS() {
                 }
                 gpsPolyline.addLatLng(point);
                 gpsMap.panTo(point);
-                status.innerText = "Enregistrement en cours...";
+                status.innerText = "Tracé en cours...";
                 document.getElementById('btn-gps-share').style.display = "flex";
             },
             (err) => alert("Erreur GPS : " + err.message),
@@ -393,10 +403,17 @@ function toggleGPS() {
 }
 
 function shareGPS() {
-    if (trackPoints.length === 0) return;
+    if (trackPoints.length === 0) {
+        alert("Activez le GPS pour obtenir votre position avant de partager.");
+        return;
+    }
     const last = trackPoints[trackPoints.length - 1];
     const url = `${window.location.origin}${window.location.pathname}?lat=${last.lat}&lon=${last.lon}`;
-    if (navigator.share) navigator.share({ title: 'Ma position CC Nay', url: url });
+    if (navigator.share) {
+        navigator.share({ title: 'Ma position CC Nay', text: 'Je suis ici lors de la sortie vélo :', url: url });
+    } else {
+        prompt("Copiez ce lien pour partager votre position :", url);
+    }
 }
 
 function exportGPX() {
@@ -483,7 +500,15 @@ function loadICE() {
     if(n) { document.getElementById('ice-input').value = n; const b = document.getElementById('btn-call-ice'); b.href="tel:"+n; b.style.display="flex"; }
 }
 
-document.addEventListener('DOMContentLoaded', () => { display(routes); loadLicence(); loadICE(); });
+document.addEventListener('DOMContentLoaded', () => { 
+    display(routes); 
+    loadLicence(); 
+    loadICE(); 
+    // Ouvrir auto le GPS si on a un lien de partage
+    if(window.location.search.includes('lat=')) {
+        switchPage('gps', document.querySelectorAll('.nav-item')[2]);
+    }
+});
 </script>
 </body>
 </html>
