@@ -6,7 +6,7 @@
     <title>Cercle Cyclotouriste Nayais - App</title>
     
     <meta property="og:title" content="Cercle Cyclotouriste Nayais">
-    <meta property="og:description" content="App du Club : Parcours, Actualités, Le Bon CCNay, Licence et Urgences.">
+    <meta property="og:description" content="App du Club : Parcours, Actualités, GPS et Urgences.">
     <meta property="og:image" content="https://catalogue-ccnay.netlify.app/logo.jpg">
     <meta property="og:url" content="https://catalogue-ccnay.netlify.app/">
     <meta property="og:type" content="website">
@@ -28,7 +28,6 @@
             --card-bg: #ffffff;
             --text: #2c3e50;
             --nav-height: 65px;
-            --pompiers: #e74c3c; --samu: #fff; --police: #3498db;
             --nord: #2980b9; --sud: #d35400; --est: #8e44ad; --ouest: #c0392b;
         }
         
@@ -61,20 +60,13 @@
             padding: 20px; border-radius: 16px; margin-bottom: 25px; text-align: center;
             box-shadow: 0 8px 20px rgba(21, 135, 230, 0.3);
         }
-        
-        /* Styles spécifiques au GPS */
-        #gps-map { height: 60vh; width: 100%; border-radius: 16px; margin-bottom: 15px; border: 2px solid #ddd; }
-        .gps-controls { display: flex; flex-direction: column; gap: 10px; }
-        #btn-gps-toggle { background: var(--primary); color: white; }
-        #btn-gps-share { background: var(--title-color); color: white; display: none; }
 
-        .news-card {
-            background: white; border-radius: 16px; padding: 20px; margin-bottom: 20px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.03); border-left: 5px solid var(--accent);
-        }
-        .news-date { background: #fef2f2; color: var(--accent); padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; display: inline-block; margin-bottom: 10px; }
-        .news-title { font-size: 1.2rem; color: #2d3436; margin: 0 0 10px 0; font-weight: 800;}
-        .news-content { line-height: 1.6; color: #555; font-size: 0.95rem; }
+        /* GPS Styles */
+        #gps-map { height: 50vh; width: 100%; border-radius: 16px; margin-bottom: 10px; border: 2px solid #ddd; z-index: 10; }
+        .gps-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        #btn-gps-toggle { background: var(--primary); color: white; grid-column: span 2; }
+        #btn-gps-share { background: var(--title-color); color: white; display: none; }
+        #btn-gps-export { background: #34495e; color: white; display: none; }
 
         .search-box { background: white; padding: 8px; border-radius: 50px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: flex; border: 1px solid #f0f0f0; margin-bottom: 20px; }
         input { width: 100%; padding: 10px 15px; border-radius: 30px; border: 0; font-size: 16px; outline: none; background: transparent; }
@@ -97,44 +89,24 @@
         .map-container.active { height: 300px; }
         iframe { width: 100%; height: 100%; border: none; }
 
-        .add-annonce-box { background: #e3f2fd; padding: 20px; border-radius: 16px; margin-bottom: 25px; border: 1px solid #bbdefb; text-align: center; }
-        .form-input { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box; font-family: inherit; font-size: 1rem; }
-        .annonce-card { background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 20px; border: 1px solid #eee; display: flex; flex-direction: column; }
-        .annonce-img { width: 100%; height: 220px; object-fit: cover; background: #eee; }
-        .annonce-body { padding: 15px; position: relative; }
-        .annonce-type { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; margin-bottom: 5px; }
-        .type-vente { background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9;}
-        .annonce-price { position: absolute; top: -15px; right: 15px; background: var(--primary); color: white; padding: 8px 15px; border-radius: 30px; font-weight: 800; }
-        .annonce-title { margin: 5px 0 5px 0; font-size: 1.2rem; color: #333; font-weight: 800; }
-        .annonce-desc { color: #555; font-size: 0.95rem; line-height: 1.5; margin-bottom: 15px; }
-        .btn-contact { background: #f8f9fa; color: #333; text-decoration: none; padding: 8px 15px; border-radius: 20px; font-weight: bold; border: 1px solid #ddd; display: flex; align-items: center; gap: 5px; }
-
-        .newsletter-list { list-style: none; padding: 0; margin: 0;}
-        .newsletter-item { background: white; padding: 20px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.03); border: 1px solid #f0f0f0; display: flex; align-items: center; justify-content: space-between; }
-        .btn-read { background: #e3f2fd; color: #1976D2; padding: 8px 18px; border-radius: 20px; font-size: 0.85rem; font-weight: 700; text-decoration: none;}
-
-        .licence-card { background: white; border-radius: 16px; padding: 20px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.05); min-height: 200px; display: flex; flex-direction: column; justify-content: center; align-items: center; border: 2px dashed #ddd; position: relative; overflow: hidden; }
-        .licence-card.has-file { border: 2px solid var(--primary); padding: 0; background: #333; }
-        .licence-preview { width: 100%; height: auto; max-height: 70vh; object-fit: contain; display: none; }
+        .licence-card { background: white; border-radius: 16px; padding: 20px; text-align: center; border: 2px dashed #ddd; position: relative; overflow: hidden; min-height: 150px; display: flex; align-items: center; justify-content: center; }
+        .licence-card.has-file { border: 2px solid var(--primary); background: #333; padding: 0; }
+        .licence-preview { width: 100%; max-height: 70vh; object-fit: contain; display: none; }
         .pdf-preview { width: 100%; height: 500px; display: none; border: none; }
-        .btn-upload { background: #e3f2fd; color: #1565C0; padding: 15px 30px; border-radius: 30px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 10px; margin-top: 15px; }
-        .btn-delete-licence { position: absolute; top: 15px; right: 15px; background: rgba(255,255,255,0.9); color: #d35400; width: 40px; height: 40px; border-radius: 50%; display: none; align-items: center; justify-content: center; cursor: pointer; border: none; z-index: 10; }
+        .btn-upload { background: #e3f2fd; color: #1565C0; padding: 15px 30px; border-radius: 30px; font-weight: 800; cursor: pointer; }
+        .btn-delete-licence { position: absolute; top: 15px; right: 15px; background: rgba(255,255,255,0.9); color: #d35400; width: 40px; height: 40px; border-radius: 50%; display: none; align-items: center; justify-content: center; border: none; z-index: 10; }
 
-        .my-contact-card { background: white; padding: 20px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: center; border-top: 5px solid var(--primary); }
-        .ice-input { width: 100%; padding: 15px; margin-bottom: 15px; border: 2px solid #eee; border-radius: 10px; font-size: 1.2rem; text-align: center; font-weight: bold; box-sizing: border-box; }
-        .btn-call-ice { display: none; width: 100%; margin-top: 15px; padding: 15px; background: var(--primary); color: white; font-size: 1.1rem; border-radius: 10px; text-decoration: none; font-weight: bold; box-shadow: 0 4px 10px rgba(0,111,62,0.3); box-sizing: border-box; }
         .sos-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .btn-sos { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; border-radius: 16px; text-decoration: none; color: white; font-weight: 800; font-size: 1.2rem; box-shadow: 0 4px 10px rgba(0,0,0,0.15); transition: transform 0.1s; }
+        .btn-sos { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; border-radius: 16px; text-decoration: none; color: white; font-weight: 800; font-size: 1.2rem; }
         .bg-pompier { background: linear-gradient(135deg, #ff416c, #ff4b2b); }
         .bg-samu { background: white; color: #2c3e50; border: 2px solid #eee; }
         .bg-police { background: linear-gradient(135deg, #2980b9, #2c3e50); }
         .bg-112 { background: linear-gradient(135deg, #f1c40f, #f39c12); }
 
-        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; height: var(--nav-height); background: white; border-top: 1px solid #e0e0e0; display: flex; justify-content: space-around; align-items: center; z-index: 1000; box-shadow: 0 -4px 20px rgba(0,0,0,0.03); padding-bottom: env(safe-area-inset-bottom); }
-        .nav-item { border: none; background: none; flex: 1; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #95a5a6; font-size: 0.60rem; font-weight: 600; cursor: pointer; transition: 0.2s; padding-top: 5px; }
-        .nav-item span { font-size: 1.3rem; margin-bottom: 3px; display: block;}
+        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; height: var(--nav-height); background: white; border-top: 1px solid #e0e0e0; display: flex; justify-content: space-around; align-items: center; z-index: 1000; padding-bottom: env(safe-area-inset-bottom); }
+        .nav-item { border: none; background: none; flex: 1; display: flex; flex-direction: column; align-items: center; color: #95a5a6; font-size: 0.65rem; font-weight: 600; cursor: pointer; }
+        .nav-item span { font-size: 1.3rem; margin-bottom: 3px; }
         .nav-item.active { color: var(--primary); }
-        .copyright-footer { text-align: center; margin-top: 40px; padding-bottom: 10px; color: #bdc3c7; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; }
     </style>
 </head>
 <body>
@@ -143,46 +115,20 @@
     <img src="logo.jpg" alt="Logo" class="header-logo">
     <div class="header-text">
         <h1>Cercle Cyclo Nayais</h1>
-        <span class="page-title" id="header-subtitle">Accueil & Actualités</span>
+        <span class="page-title" id="header-subtitle">Accueil</span>
     </div>
 </header>
 
 <div id="page-accueil" class="page-section active">
     <div class="welcome-box">
         <h2>Bienvenue ! 🚴‍♂️</h2>
-        <p style="margin:0; opacity: 0.9;">Retrouvez l'essentiel de la vie du club.</p>
+        <p style="margin:0; opacity: 0.9;">L'essentiel du club dans votre poche.</p>
     </div>
-
-    <div class="section-separator">📅 Au Programme</div>
-    
-    <div class="news-card">
-        <span class="news-date" style="background:#e3f2fd; color:#1976d2;">Dimanche 8 Mars 2026</span>
-        <h3 class="news-title">❄️ Sortie Raquettes à neige</h3>
-        <div class="news-content">
-            <p><strong>Rassemblement :</strong> Parking secteur Pourtalet / Araillé.<br>
-            <strong>Point GPS :</strong> RH8J+3QQ Laruns.<br>
-            <strong>Horaires :</strong> 9h00 (départ 9h30).</p>
-            <p><strong>Matériel :</strong> Tenue chaude et raquettes. Location possible à Laruns (Locaski). <strong>Amenez votre casse-croûte</strong>.</p>
-            <div style="margin-top: 15px;">
-                <a href="mailto:cercle.cyclo.nayais@gmail.com?subject=Confirmation%20Presence%20Sortie%20Raquettes&body=Bonjour%2C%0A%0AJe%20confirme%20ma%20presence%20pour%20la%20sortie%20raquettes%20du%208%20mars.%0A%0ANom%20%3A%0APrenom%20%3A%0A%0AMerci." class="btn btn-dl">
-                    📧 Confirmer ma présence
-                </a>
-            </div>
-        </div>
+    <div class="section-separator">📅 Prochaine Sortie</div>
+    <div style="background:white; padding:15px; border-radius:12px; border-left:5px solid var(--accent); margin-bottom:15px;">
+        <h3 style="margin:0 0 5px 0;">Sortie Raquettes</h3>
+        <p style="font-size:0.9rem; color:#555; margin:0;">Dimanche 8 Mars 2026 - Laruns / Pourtalet.</p>
     </div>
-
-    <div class="news-card">
-        <span class="news-date" style="background:#e8f5e9; color:#1b5e20;">Sorties Cyclo</span>
-        <h3 class="news-title">Planning Mensuel</h3>
-        <div class="news-content">
-            Consultez les itinéraires du mois en cours.
-            <div style="margin-top: 15px;">
-                <a href="https://92nono64.github.io/parcours-ccnay-janvier-2026/" target="_blank" class="btn btn-dl">📅 Voir le programme</a>
-            </div>
-        </div>
-    </div>
-
-    <div class="copyright-footer">&copy; CCNAY 2026 - Toute reproduction est interdite</div>
 </div>
 
 <div id="page-catalogue" class="page-section">
@@ -192,63 +138,26 @@
 </div>
 
 <div id="page-gps" class="page-section">
-    <div class="section-separator">📍 Ma Position GPS</div>
+    <div class="section-separator">📍 Tracé GPS & Export</div>
     <div id="gps-map"></div>
-    <div id="gps-status" style="text-align:center; margin-bottom:10px; font-size:0.8rem; color:#666;">GPS Inactif</div>
+    <div id="gps-status" style="text-align:center; margin-bottom:10px; font-weight:bold; color:var(--primary);">GPS Inactif</div>
     <div class="gps-controls">
-        <button id="btn-gps-toggle" class="btn" onclick="toggleGPS()">📍 Activer mon GPS</button>
-        <button id="btn-gps-share" class="btn" onclick="shareGPS()">📤 Partager ma position</button>
-    </div>
-    <p style="font-size:0.75rem; color:#888; text-align:center; margin-top:15px;">Le GPS s'éteint automatiquement quand vous changez d'onglet pour économiser votre batterie.</p>
-</div>
-
-<div id="page-vente" class="page-section">
-    <div class="welcome-box" style="background: var(--accent);">
-        <h2>Le Bon CCNay 🤝</h2>
-        <p style="margin:0; opacity: 0.9;">Vendez ou donnez votre matériel entre membres.</p>
-    </div>
-    <div class="add-annonce-box">
-        <h3 style="margin-top:0; color:#1565C0;">📢 Déposer une annonce</h3>
-        <select id="v-type" class="form-input" style="font-weight:bold;">
-            <option value="Vente">💰 Je Vends</option>
-            <option value="Echange">🔄 J'Échange</option>
-            <option value="Don">🎁 Je Donne</option>
-        </select>
-        <input type="text" id="v-nom" class="form-input" placeholder="Votre Nom">
-        <input type="tel" id="v-tel" class="form-input" placeholder="Votre Téléphone">
-        <input type="text" id="v-titre" class="form-input" placeholder="Objet">
-        <input type="text" id="v-prix" class="form-input" placeholder="Prix">
-        <textarea id="v-desc" class="form-input" placeholder="Description..."></textarea>
-        <button class="btn btn-dl" style="width:100%;" onclick="sendAnnonceEmail()">📧 Préparer l'email</button>
-    </div>
-    <div class="annonce-card">
-        <img src="https://raw.githubusercontent.com/92Nono64/APPCCNAY/main/TC2026.jpg" class="annonce-img">
-        <div class="annonce-body">
-            <span class="annonce-price">1600€</span>
-            <span class="annonce-type type-vente">💰 VENTE</span>
-            <h3 class="annonce-title">Specialized Élite Roubaix 2017</h3>
-            <p class="annonce-desc">Taille 56. Très bon état. Thierry 06 03 15 62 75.</p>
-            <div class="annonce-contact"><span class="contact-name">👤 Thierry Crapoulet</span><a href="tel:0603156275" class="btn-contact">📞 Appeler</a></div>
-        </div>
+        <button id="btn-gps-toggle" class="btn" onclick="toggleGPS()">▶️ Démarrer le tracé</button>
+        <button id="btn-gps-share" class="btn" onclick="shareGPS()">📤 Partager</button>
+        <button id="btn-gps-export" class="btn" onclick="exportGPX()">💾 Exporter GPX</button>
     </div>
 </div>
 
 <div id="page-newsletter" class="page-section">
-    <div style="text-align: center; margin-bottom: 30px;"><h2 style="color:var(--primary);">📰 Gazette du Guidon</h2></div>
-    <ul class="newsletter-list">
-        <li class="newsletter-item">
-            <div class="nl-info"><strong>Février 2026</strong><span>27/02/2026</span></div>
-            <a href="https://cdn.eu.yapla.com/company/CPYSmiRO92lagoV7GubI1LxC3/asset/files/Newsletter_F%C3%A9vrier_2026_liens_Op.pdf" target="_blank" class="btn-read">Lire PDF</a>
-        </li>
-        <li class="newsletter-item">
-            <div class="nl-info"><strong>Janvier 2026</strong><span>30/01/2026</span></div>
-            <a href="https://cdn.eu.yapla.com/company/CPYSmiRO92lagoV7GubI1LxC3/asset/files/Newsletter_Janvier_2026_Op_Liens.pdf" target="_blank" class="btn-read">Lire PDF</a>
-        </li>
-    </ul>
+    <div class="section-separator">📰 Gazette du Guidon</div>
+    <div style="background:white; padding:15px; border-radius:12px; display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <strong>Février 2026</strong>
+        <a href="https://cdn.eu.yapla.com/company/CPYSmiRO92lagoV7GubI1LxC3/asset/files/Newsletter_F%C3%A9vrier_2026_liens_Op.pdf" target="_blank" style="color:var(--primary); font-weight:bold; text-decoration:none;">Lire PDF</a>
+    </div>
 </div>
 
 <div id="page-ffvelo" class="page-section">
-    <div class="section-separator">Ma Licence</div>
+    <div class="section-separator">🪪 Ma Licence</div>
     <div class="licence-card" id="licence-container">
         <div id="licence-empty-state">
             <label for="licence-upload" class="btn-upload">📤 Importer ma licence</label>
@@ -261,33 +170,33 @@
 </div>
 
 <div id="page-urgence" class="page-section">
-    <div class="section-separator">👤 Mon Contact d'Urgence</div>
-    <div class="my-contact-card">
-        <input type="tel" id="ice-input" class="ice-input" placeholder="06 00 00 00 00">
-        <button class="btn btn-dl" style="background:#333; margin-bottom:10px;" onclick="saveContact()">💾 Sauver</button>
-        <a href="#" id="btn-call-ice" class="btn-call-ice">📞 APPELER MON CONTACT</a>
+    <div class="section-separator">🆘 Urgences</div>
+    <div style="background:white; padding:15px; border-radius:16px; margin-bottom:20px; text-align:center;">
+        <input type="tel" id="ice-input" placeholder="06 00 00 00 00" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; text-align:center; font-size:1.1rem; margin-bottom:10px;">
+        <button class="btn btn-dl" style="background:#333; width:100%;" onclick="saveContact()">💾 Sauver mon ICE</button>
+        <a href="#" id="btn-call-ice" class="btn" style="display:none; background:var(--primary); color:white; margin-top:10px;">📞 APPELER MON CONTACT</a>
     </div>
     <div class="sos-grid">
         <a href="tel:18" class="btn-sos bg-pompier"><span>🚒</span> 18</a>
+        <a href="tel:15" class="btn-sos bg-samu"><span>🚑</span> 15</a>
         <a href="tel:17" class="btn-sos bg-police"><span>👮</span> 17</a>
-        <a href="tel:15" class="btn-sos bg-samu" style="color:#333;"><span>🚑</span> 15</a>
         <a href="tel:112" class="btn-sos bg-112"><span>🇪🇺</span> 112</a>
     </div>
 </div>
 
 <nav class="bottom-nav">
-    <button class="nav-item active" onclick="switchPage('accueil', this)"><span>🏠</span> Accueil</button>
-    <button class="nav-item" onclick="switchPage('catalogue', this)"><span>🚴</span> Parcours</button>
-    <button class="nav-item" onclick="switchPage('gps', this)"><span>📍</span> GPS</button>
-    <button class="nav-item" onclick="switchPage('vente', this)"><span>🤝</span> Le Bon CCNay</button>
-    <button class="nav-item" onclick="switchPage('newsletter', this)"><span>📰</span> Infos</button>
-    <button class="nav-item" onclick="switchPage('urgence', this)"><span>🆘</span> Urgence</button>
+    <button class="nav-item active" onclick="switchPage('accueil', this)"><span>🏠</span>Accueil</button>
+    <button class="nav-item" onclick="switchPage('catalogue', this)"><span>🚴</span>Parcours</button>
+    <button class="nav-item" onclick="switchPage('gps', this)"><span>📍</span>GPS</button>
+    <button class="nav-item" onclick="switchPage('newsletter', this)"><span>📰</span>Infos</button>
+    <button class="nav-item" onclick="switchPage('ffvelo', this)">🪪Licence</button>
+    <button class="nav-item" onclick="switchPage('urgence', this)"><span>🆘</span>SOS</button>
 </nav>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
-// --- DONNÉES CATALOGUE (TOUS LES PARCOURS) ---
+// --- CATALOGUE DATA (FULL 99 ROUTES) ---
 const routes = [
   {id:"001", z:"Nord", d1:"56km", d2:"49km", u:"https://www.visugpx.com/iGnthdT0l9", t1:"Nay, Mirepeix, Lagos, Espoey, Lourenties, Arrien, Espéchède, Ouillon, Serre-Morlaas, Ousse, Assat, Baliros, Arros-Nay, Nay", t2:"Soumoulou, Limendous, Andoins, Serre-Morlaas et retour commun"},
   {id:"002", z:"Nord", d1:"72km", d2:"61km", u:"https://www.visugpx.com/t6RjuRPcRM", t1:"Nay, Baudreix, Angaïs, Ousse, Morlaas, St Jammes, Gabaston, Sedzére, Arrien, Gardéres, Luquet, Espoey, Lagos, Bois de Lagos, Bénéjacq, Coarraze, Nay", t2:"Andoins, Espoey et itinéraire commun"},
@@ -347,7 +256,7 @@ const routes = [
   {id:"057", z:"Sud", d1:"124km", d2:"96km", u:"https://www.visugpx.com/CPgLYYjv1V", t1:"Nay,Asson,Louvie,Laruns,Gourette,Col d'Aubisque,Col du Soulor,Arrens,Argelès,Lourdes,St Pé,Lestelle et Nay", t2:"Col du Soulor,Arbéost,Ferrieres,Asson et Nay"},
   {id:"058", z:"Ouest", d1:"104km", d2:"100km", u:"https://www.visugpx.com/UU50uNk8cn", t1:"Nay, Baliros, Mazères, Gelos, Jurançon, Laroin, Artiguelouve, Arbus, Parbayse, Cuqueron, Monein, Lucq de Béarn, Ledeuix, Estos, Goés, Estialescq, Lasseube, Bel Air, Rébénacq, Les Pindats, Arros de Nay et Nay", t2:"Gan et retour commun"},
   {id:"059", z:"Sud", d1:"115km", d2:"110km", u:"https://www.visugpx.com/81YUAe6fJg", t1:"Lourdes, Lugagnan, Bo-Silhen, Préchac, Beaucens, Luz, Gèdre, Cirque de Troumouse, Gèdre, Luz, Soulom, Argeles, Agos, Lourdes", t2:"Lac des Gloriettes et retour commun"},
-  {id:"060", z:"Est", d1:"101km", d2:"85km", u:"https://www.visugpx.com/67oPP8OJRe", t1:"Nay, Lestelle, Lourdes, Lugagnan, Berberust, Juncalas, Lingous, Neuilh, Loucrup, Visker, Bénac, Lanne, Adé, Bartrès, Loubajac, Peyrouse, Montaut, Coarraze, Nay", t2:"Arcizac ez Angles, Lourdes, Adé, retour commun"},
+  {id:"060", z:"Est", d1:"101km", d2:"85km", u:"https://www.visugpx.com/67oPP8OJRe", t1:"Nay, Lestelle, Lourdes, Lugagnan, Berberust, Juncalas, Lingous, Neuilh, Loucrup, Visker, Bénac, Lanne, Adé, Bartres, Loubajac, Peyrouse, Montaut, Coarraze, Nay", t2:"Arcizac ez Angles, Lourdes, Adé, retour commun"},
   {id:"061", z:"Ouest", d1:"90km", d2:"75km", u:"https://www.visugpx.com/asXY9UuBBj", t1:"Nay, Haut de Lys, Sévignacq, Arudy, Bois du Bager, Lurbes, Escot, Marie-Blanque, Louvie-Juzon, Bruges, Asson, Nay", t2:"Bielle, Marie-Blanque, retour commun"},
   {id:"062", z:"Nord", d1:"82km", d2:"70km", u:"https://www.visugpx.com/WuajZqQYTE", t1:"Nay,Mirepeix,Lagos,Angaïs,Artigueloutan,Andoins,Limendous,Lourenties,Arrien,Lombia, Bédeille,Escaunets,Ponsons-Dessus,Oroix,Ger,Pontacq,Labatmale,Bénéjacq et Nay", t2:"Bédeille,Séron,Gardères,Luquet,Pontacq et itinéraire commun"},
   {id:"063", z:"Ouest", d1:"59km", d2:"54km", u:"https://www.visugpx.com/iE8e3vckBM", t1:"Nay, Arros, Avant Les Pindats,Vallée Heureuse, Quartier Rapatout, Bois de Gelos, Gan, Direction Oloron, Chemin de Lamanet, Rébénacq, Ht de la côte, Route de Lys, Bignalats, St Jo et Nay", t2:"Gan, Rébénacq et retour commun"},
@@ -388,108 +297,94 @@ const routes = [
   {id:"099", z:"Nord", d1:"71km", d2:"59km", u:"https://www.visugpx.com/q3g9vHfu3N", t1:"Nay, Mirepeix, Lagos, Lucgarier, Gomer, Nousty, Artigueloutan, Assat, Narcastet, Mazères, Coteaux de Guindalos, Gan, Rébénacq, Haut de Lys, Lys, Bruges, Asson et Nay", t2:"Beuste, Angaïs, Bordes, Narcastet et retour commun"}
 ];
 
-// --- LOGIQUE APPLICATION ---
+// --- APP LOGIC ---
 
-let gpsMap, gpsMarker, gpsWatchId;
-let gpsLat, gpsLon;
+let gpsMap, gpsMarker, gpsWatchId, gpsPolyline;
+let trackPoints = [];
 
 function switchPage(pageId, btnElement) {
     window.scrollTo(0, 0);
-    
-    // Arrêter le GPS si on quitte l'onglet GPS pour économiser la batterie
-    if(pageId !== 'gps' && gpsWatchId) {
-        toggleGPS(true); // Force l'arrêt
-    }
-
     document.querySelectorAll('.page-section').forEach(el => el.classList.remove('active'));
     document.getElementById('page-' + pageId).classList.add('active');
     document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
     btnElement.classList.add('active');
-    
-    const titles = {'accueil':'Accueil','catalogue':'Catalogue','gps':'GPS & Position','vente':'Le Bon CCNay','newsletter':'Gazette','ffvelo':'Licence','urgence':'Urgence'};
-    document.getElementById('header-subtitle').innerText = titles[pageId];
-
-    // Initialiser la map GPS si nécessaire
-    if(pageId === 'gps' && !gpsMap) {
-        initGPSMap();
-    }
+    document.getElementById('header-subtitle').innerText = pageId.charAt(0).toUpperCase() + pageId.slice(1);
+    if(pageId === 'gps' && !gpsMap) initGPSMap();
 }
 
-// --- LOGIQUE GPS ---
+// GPS Logic
 function initGPSMap() {
     gpsMap = L.map('gps-map').setView([43.1806, -0.2631], 13);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap'
+        attribution: '© OpenStreetMap contributors'
     }).addTo(gpsMap);
-
-    // Vérifier si lien de partage reçu
-    const params = new URLSearchParams(window.location.search);
-    if (params.has('lat') && params.has('lon')) {
-        const plat = parseFloat(params.get('lat'));
-        const plon = parseFloat(params.get('lon'));
-        L.marker([plat, plon]).addTo(gpsMap).bindPopup("Position partagée").openPopup();
-        gpsMap.setView([plat, plon], 15);
-    }
+    gpsPolyline = L.polyline([], {color: '#006f3e', weight: 5}).addTo(gpsMap);
 }
 
-function toggleGPS(forceStop = false) {
+function toggleGPS() {
     const btn = document.getElementById('btn-gps-toggle');
-    const shareBtn = document.getElementById('btn-gps-share');
     const status = document.getElementById('gps-status');
 
-    if (gpsWatchId || forceStop) {
-        // ARRET
+    if (gpsWatchId) {
         navigator.geolocation.clearWatch(gpsWatchId);
         gpsWatchId = null;
-        if (gpsMarker) gpsMap.removeLayer(gpsMarker);
-        gpsMarker = null;
-        btn.innerText = "📍 Activer mon GPS";
+        btn.innerText = "▶️ Reprendre le tracé";
         btn.style.background = "var(--primary)";
-        shareBtn.style.display = "none";
-        status.innerText = "GPS Inactif";
+        status.innerText = "En pause";
+        document.getElementById('btn-gps-export').style.display = "flex";
     } else {
-        // DEMARRAGE
-        status.innerText = "Recherche du signal...";
         gpsWatchId = navigator.geolocation.watchPosition(
             (pos) => {
-                gpsLat = pos.coords.latitude;
-                gpsLon = pos.coords.longitude;
+                const lat = pos.coords.latitude;
+                const lon = pos.coords.longitude;
+                const point = [lat, lon];
+                trackPoints.push({lat, lon, time: new Date().toISOString()});
+                
                 if (!gpsMarker) {
-                    gpsMarker = L.circleMarker([gpsLat, gpsLon], {color: 'blue', radius: 10, fillOpacity: 0.8}).addTo(gpsMap);
+                    gpsMarker = L.circleMarker(point, {color: 'red', radius: 8}).addTo(gpsMap);
                 } else {
-                    gpsMarker.setLatLng([gpsLat, gpsLon]);
+                    gpsMarker.setLatLng(point);
                 }
-                gpsMap.setView([gpsLat, gpsLon], 15);
-                status.innerText = "Position actualisée";
-                shareBtn.style.display = "flex";
+                gpsPolyline.addLatLng(point);
+                gpsMap.panTo(point);
+                status.innerText = "Enregistrement en cours...";
+                document.getElementById('btn-gps-share').style.display = "flex";
             },
-            (err) => { 
-                alert("Erreur GPS : " + err.message); 
-                toggleGPS(true);
-            },
+            (err) => alert("Erreur GPS : " + err.message),
             { enableHighAccuracy: true }
         );
-        btn.innerText = "🛑 Arrêter le GPS";
-        btn.style.background = "var(--accent)";
+        btn.innerText = "⏸️ Pause";
+        btn.style.background = "orange";
     }
 }
 
 function shareGPS() {
-    if (!gpsLat) return;
-    const url = `${window.location.origin}${window.location.pathname}?lat=${gpsLat}&lon=${gpsLon}`;
-    if (navigator.share) {
-        navigator.share({ title: 'Ma position - CC Nay', url: url });
-    } else {
-        prompt("Copiez ce lien pour partager :", url);
-    }
+    if (trackPoints.length === 0) return;
+    const last = trackPoints[trackPoints.length - 1];
+    const url = `${window.location.origin}${window.location.pathname}?lat=${last.lat}&lon=${last.lon}`;
+    if (navigator.share) navigator.share({ title: 'Ma position CC Nay', url: url });
 }
 
-// --- LOGIQUE CATALOGUE ---
+function exportGPX() {
+    if (trackPoints.length < 2) return;
+    let gpx = `<?xml version="1.0" encoding="UTF-8"?><gpx version="1.1" creator="CCNay App"><trk><name>Sortie CCNay</name><trkseg>`;
+    trackPoints.forEach(p => {
+        gpx += `<trkpt lat="${p.lat}" lon="${p.lon}"><time>${p.time}</time></trkpt>`;
+    });
+    gpx += `</trkseg></trk></gpx>`;
+    const blob = new Blob([gpx], {type: 'application/gpx+xml'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Sortie_CCNay_${new Date().toLocaleDateString()}.gpx`;
+    a.click();
+}
+
+// Catalogue Logic
 function display(list) {
     const grid = document.getElementById('grid');
     grid.innerHTML = '';
-    const countEl = document.getElementById('count');
-    if(countEl) countEl.innerText = `${list.length} parcours disponibles`;
+    document.getElementById('count').innerText = `${list.length} parcours disponibles`;
     list.forEach(r => {
         const c = document.createElement('div');
         c.className = 'card';
@@ -522,19 +417,7 @@ function filter() {
     display(routes.filter(r => (r.id+r.z+r.t1+r.t2+r.d1).toLowerCase().includes(q)));
 }
 
-function sendAnnonceEmail() {
-    const t = document.getElementById('v-type').value;
-    const n = document.getElementById('v-nom').value;
-    const tel = document.getElementById('v-tel').value;
-    const tit = document.getElementById('v-titre').value;
-    const p = document.getElementById('v-prix').value;
-    const d = document.getElementById('v-desc').value;
-    if(!n || !tit) { alert("Nom et Titre requis"); return; }
-    const sub = encodeURIComponent("Annonce CCNAY [" + t + "] : " + tit);
-    const body = encodeURIComponent("Bonjour,\nVendeur: "+n+"\nTel: "+tel+"\nType: "+t+"\nObjet: "+tit+"\nPrix: "+p+"\n\nDescription:\n"+d);
-    window.location.href = "mailto:cercle.cyclo.nayais@gmail.com?subject=" + sub + "&body=" + body;
-}
-
+// Licence & ICE Logic
 function handleLicenceUpload(input) {
     const f = input.files[0];
     const r = new FileReader();
@@ -549,40 +432,23 @@ function handleLicenceUpload(input) {
 function loadLicence() {
     const d = localStorage.getItem('ccn_licence_data');
     const t = localStorage.getItem('ccn_licence_type');
-    const container = document.getElementById('licence-container');
-    if(d && container) {
-        container.classList.add('has-file');
+    if(d) {
+        document.getElementById('licence-container').classList.add('has-file');
         document.getElementById('licence-empty-state').style.display='none';
         document.getElementById('btn-delete-licence').style.display='flex';
-        if(t && t.includes('pdf')) { 
-            document.getElementById('licence-pdf-preview').style.display='block'; 
-            document.getElementById('licence-pdf-preview').src = d; 
-        }
-        else { 
-            document.getElementById('licence-img-preview').style.display='block'; 
-            document.getElementById('licence-img-preview').src = d; 
-        }
+        if(t.includes('pdf')) { document.getElementById('licence-pdf-preview').style.display='block'; document.getElementById('licence-pdf-preview').src = d; }
+        else { document.getElementById('licence-img-preview').style.display='block'; document.getElementById('licence-img-preview').src = d; }
     }
 }
 
-function deleteLicence() { if(confirm("Supprimer la licence ?")) { localStorage.removeItem('ccn_licence_data'); location.reload(); } }
+function deleteLicence() { localStorage.removeItem('ccn_licence_data'); location.reload(); }
 function saveContact() { localStorage.setItem('ice', document.getElementById('ice-input').value); alert("Sauvegardé"); loadICE(); }
 function loadICE() {
     const n = localStorage.getItem('ice');
-    const b = document.getElementById('btn-call-ice');
-    const input = document.getElementById('ice-input');
-    if(n && b && input) { input.value = n; b.href="tel:"+n; b.style.display="block"; }
+    if(n) { document.getElementById('ice-input').value = n; const b = document.getElementById('btn-call-ice'); b.href="tel:"+n; b.style.display="flex"; }
 }
 
-document.addEventListener('DOMContentLoaded', () => { 
-    display(routes); 
-    loadLicence(); 
-    loadICE(); 
-    // Si on arrive via un lien de partage, ouvrir directement l'onglet GPS
-    if(window.location.search.includes('lat=')) {
-        switchPage('gps', document.querySelectorAll('.nav-item')[2]);
-    }
-});
+document.addEventListener('DOMContentLoaded', () => { display(routes); loadLicence(); loadICE(); });
 </script>
 </body>
 </html>
