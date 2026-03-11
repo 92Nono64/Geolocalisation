@@ -68,6 +68,14 @@
         #btn-gps-share { background: var(--title-color); color: white; display: none; }
         #btn-gps-export { background: #34495e; color: white; display: none; }
 
+        .news-card {
+            background: white; border-radius: 16px; padding: 20px; margin-bottom: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.03); border-left: 5px solid var(--accent);
+        }
+        .news-date { background: #fef2f2; color: var(--accent); padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; display: inline-block; margin-bottom: 10px; }
+        .news-title { font-size: 1.2rem; color: #2d3436; margin: 0 0 10px 0; font-weight: 800;}
+        .news-content { line-height: 1.6; color: #555; font-size: 0.95rem; }
+
         .search-box { background: white; padding: 8px; border-radius: 50px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: flex; border: 1px solid #f0f0f0; margin-bottom: 20px; }
         input { width: 100%; padding: 10px 15px; border-radius: 30px; border: 0; font-size: 16px; outline: none; background: transparent; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
@@ -124,10 +132,33 @@
         <h2>Bienvenue ! 🚴‍♂️</h2>
         <p style="margin:0; opacity: 0.9;">L'essentiel du club dans votre poche.</p>
     </div>
-    <div class="section-separator">📅 Prochaine Sortie</div>
-    <div style="background:white; padding:15px; border-radius:12px; border-left:5px solid var(--accent); margin-bottom:15px;">
-        <h3 style="margin:0 0 5px 0;">Sortie Raquettes</h3>
-        <p style="font-size:0.9rem; color:#555; margin:0;">Dimanche 8 Mars 2026 - Laruns / Pourtalet.</p>
+
+    <div class="section-separator">📅 Au Programme</div>
+    
+    <div class="news-card">
+        <span class="news-date" style="background:#e3f2fd; color:#1976d2;">Dimanche 8 Mars 2026</span>
+        <h3 class="news-title">❄️ Sortie Raquettes à neige</h3>
+        <div class="news-content">
+            <p><strong>Rassemblement :</strong> Parking secteur Pourtalet / Araillé.<br>
+            <strong>Point GPS :</strong> RH8J+3QQ Laruns.<br>
+            <strong>Horaires :</strong> 9h00 (départ 9h30).</p>
+            <div style="margin-top: 15px;">
+                <a href="mailto:cercle.cyclo.nayais@gmail.com?subject=Presence%20Sortie%20Raquettes" class="btn btn-dl">
+                    📧 Confirmer ma présence
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="news-card">
+        <span class="news-date" style="background:#e8f5e9; color:#1b5e20;">Sorties Cyclo</span>
+        <h3 class="news-title">Planning Mensuel</h3>
+        <div class="news-content">
+            Consultez les itinéraires du mois en cours.
+            <div style="margin-top: 15px;">
+                <a href="https://92nono64.github.io/parcours-ccnay-janvier-2026/" target="_blank" class="btn btn-dl">📅 Voir le programme</a>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -256,7 +287,7 @@ const routes = [
   {id:"057", z:"Sud", d1:"124km", d2:"96km", u:"https://www.visugpx.com/CPgLYYjv1V", t1:"Nay,Asson,Louvie,Laruns,Gourette,Col d'Aubisque,Col du Soulor,Arrens,Argelès,Lourdes,St Pé,Lestelle et Nay", t2:"Col du Soulor,Arbéost,Ferrieres,Asson et Nay"},
   {id:"058", z:"Ouest", d1:"104km", d2:"100km", u:"https://www.visugpx.com/UU50uNk8cn", t1:"Nay, Baliros, Mazères, Gelos, Jurançon, Laroin, Artiguelouve, Arbus, Parbayse, Cuqueron, Monein, Lucq de Béarn, Ledeuix, Estos, Goés, Estialescq, Lasseube, Bel Air, Rébénacq, Les Pindats, Arros de Nay et Nay", t2:"Gan et retour commun"},
   {id:"059", z:"Sud", d1:"115km", d2:"110km", u:"https://www.visugpx.com/81YUAe6fJg", t1:"Lourdes, Lugagnan, Bo-Silhen, Préchac, Beaucens, Luz, Gèdre, Cirque de Troumouse, Gèdre, Luz, Soulom, Argeles, Agos, Lourdes", t2:"Lac des Gloriettes et retour commun"},
-  {id:"060", z:"Est", d1:"101km", d2:"85km", u:"https://www.visugpx.com/67oPP8OJRe", t1:"Nay, Lestelle, Lourdes, Lugagnan, Berberust, Juncalas, Lingous, Neuilh, Loucrup, Visker, Bénac, Lanne, Adé, Bartres, Loubajac, Peyrouse, Montaut, Coarraze, Nay", t2:"Arcizac ez Angles, Lourdes, Adé, retour commun"},
+  {id:"060", z:"Est", d1:"101km", d2:"85km", u:"https://www.visugpx.com/67oPP8OJRe", t1:"Nay, Lestelle, Lourdes, Lugagnan, Berberust, Juncalas, Lingous, Neuilh, Loucrup, Visker, Bénac, Lanne, Adé, Bartrès, Loubajac, Peyrouse, Montaut, Coarraze, Nay", t2:"Arcizac ez Angles, Lourdes, Adé, retour commun"},
   {id:"061", z:"Ouest", d1:"90km", d2:"75km", u:"https://www.visugpx.com/asXY9UuBBj", t1:"Nay, Haut de Lys, Sévignacq, Arudy, Bois du Bager, Lurbes, Escot, Marie-Blanque, Louvie-Juzon, Bruges, Asson, Nay", t2:"Bielle, Marie-Blanque, retour commun"},
   {id:"062", z:"Nord", d1:"82km", d2:"70km", u:"https://www.visugpx.com/WuajZqQYTE", t1:"Nay,Mirepeix,Lagos,Angaïs,Artigueloutan,Andoins,Limendous,Lourenties,Arrien,Lombia, Bédeille,Escaunets,Ponsons-Dessus,Oroix,Ger,Pontacq,Labatmale,Bénéjacq et Nay", t2:"Bédeille,Séron,Gardères,Luquet,Pontacq et itinéraire commun"},
   {id:"063", z:"Ouest", d1:"59km", d2:"54km", u:"https://www.visugpx.com/iE8e3vckBM", t1:"Nay, Arros, Avant Les Pindats,Vallée Heureuse, Quartier Rapatout, Bois de Gelos, Gan, Direction Oloron, Chemin de Lamanet, Rébénacq, Ht de la côte, Route de Lys, Bignalats, St Jo et Nay", t2:"Gan, Rébénacq et retour commun"},
@@ -308,7 +339,10 @@ function switchPage(pageId, btnElement) {
     document.getElementById('page-' + pageId).classList.add('active');
     document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
     btnElement.classList.add('active');
-    document.getElementById('header-subtitle').innerText = pageId.charAt(0).toUpperCase() + pageId.slice(1);
+    
+    const titles = {'accueil':'Accueil','catalogue':'Catalogue','gps':'GPS & Tracé','newsletter':'Infos','ffvelo':'Licence','urgence':'SOS'};
+    document.getElementById('header-subtitle').innerText = titles[pageId];
+    
     if(pageId === 'gps' && !gpsMap) initGPSMap();
 }
 
@@ -316,7 +350,7 @@ function switchPage(pageId, btnElement) {
 function initGPSMap() {
     gpsMap = L.map('gps-map').setView([43.1806, -0.2631], 13);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors'
+        attribution: '© OpenStreetMap'
     }).addTo(gpsMap);
     gpsPolyline = L.polyline([], {color: '#006f3e', weight: 5}).addTo(gpsMap);
 }
@@ -383,6 +417,7 @@ function exportGPX() {
 // Catalogue Logic
 function display(list) {
     const grid = document.getElementById('grid');
+    if(!grid) return;
     grid.innerHTML = '';
     document.getElementById('count').innerText = `${list.length} parcours disponibles`;
     list.forEach(r => {
@@ -417,7 +452,7 @@ function filter() {
     display(routes.filter(r => (r.id+r.z+r.t1+r.t2+r.d1).toLowerCase().includes(q)));
 }
 
-// Licence & ICE Logic
+// Licence & SOS
 function handleLicenceUpload(input) {
     const f = input.files[0];
     const r = new FileReader();
@@ -436,7 +471,7 @@ function loadLicence() {
         document.getElementById('licence-container').classList.add('has-file');
         document.getElementById('licence-empty-state').style.display='none';
         document.getElementById('btn-delete-licence').style.display='flex';
-        if(t.includes('pdf')) { document.getElementById('licence-pdf-preview').style.display='block'; document.getElementById('licence-pdf-preview').src = d; }
+        if(t && t.includes('pdf')) { document.getElementById('licence-pdf-preview').style.display='block'; document.getElementById('licence-pdf-preview').src = d; }
         else { document.getElementById('licence-img-preview').style.display='block'; document.getElementById('licence-img-preview').src = d; }
     }
 }
