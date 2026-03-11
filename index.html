@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Cercle Cyclotouriste Nayais - App</title>
+    
+    <meta property="og:title" content="Cercle Cyclotouriste Nayais">
+    <meta property="og:description" content="App du Club : Parcours, Actualités, Le Bon CCNay, Licence et Urgences.">
+    <meta property="og:image" content="https://catalogue-ccnay.netlify.app/logo.jpg">
+    <meta property="og:url" content="https://catalogue-ccnay.netlify.app/">
+    <meta property="og:type" content="website">
+
+    <link rel="icon" href="ccnay.png" type="image/png">
+    <link rel="apple-touch-icon" href="ccnay.png">
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="white">
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <style>
+        :root {
+            --primary: #006f3e;
+            --title-color: #1F86DB;
+            --accent: #a51a2d;
+            --bg: #f4f6f8;
+            --card-bg: #ffffff;
+            --text: #2c3e50;
+            --nav-height: 65px;
+            --pompiers: #e74c3c; --samu: #fff; --police: #3498db;
+            --nord: #2980b9; --sud: #d35400; --est: #8e44ad; --ouest: #c0392b;
+        }
+        
+        body { 
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            background: var(--bg); color: var(--text); 
+            margin: 0; padding: 0; 
+            padding-bottom: calc(var(--nav-height) + 20px);
+            -webkit-tap-highlight-color: transparent; 
+        }
+        
+        header {
+            background: white; padding: 15px 20px; text-align: left;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            position: sticky; top: 0; z-index: 900;
+            display: flex; align-items: center; gap: 15px;
+        }
+        .header-logo { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid #eee;}
+        .header-text { display: flex; flex-direction: column; }
+        h1 { color: var(--title-color); margin: 0; font-size: 1rem; text-transform: uppercase; font-weight: 800; line-height: 1.2;}
+        .page-title { font-size: 0.9rem; color: var(--accent); font-weight: 600; margin-top: 2px;}
+
+        .page-section { display: none; padding: 15px; animation: fadeIn 0.3s; }
+        .page-section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .section-separator { font-size: 1.1rem; color: #555; margin: 25px 0 15px 0; font-weight: 800; text-transform: uppercase; border-bottom: 2px solid #eee; padding-bottom: 5px; }
+
+        .welcome-box {
+            background: #1587E6; color: white;
+            padding: 20px; border-radius: 16px; margin-bottom: 25px; text-align: center;
+            box-shadow: 0 8px 20px rgba(21, 135, 230, 0.3);
+        }
+        
+        /* Styles spécifiques au GPS */
+        #gps-map { height: 60vh; width: 100%; border-radius: 16px; margin-bottom: 15px; border: 2px solid #ddd; }
+        .gps-controls { display: flex; flex-direction: column; gap: 10px; }
+        #btn-gps-toggle { background: var(--primary); color: white; }
+        #btn-gps-share { background: var(--title-color); color: white; display: none; }
+
+        .news-card {
+            background: white; border-radius: 16px; padding: 20px; margin-bottom: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.03); border-left: 5px solid var(--accent);
+        }
+        .news-date { background: #fef2f2; color: var(--accent); padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; display: inline-block; margin-bottom: 10px; }
+        .news-title { font-size: 1.2rem; color: #2d3436; margin: 0 0 10px 0; font-weight: 800;}
+        .news-content { line-height: 1.6; color: #555; font-size: 0.95rem; }
+
+        .search-box { background: white; padding: 8px; border-radius: 50px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: flex; border: 1px solid #f0f0f0; margin-bottom: 20px; }
+        input { width: 100%; padding: 10px 15px; border-radius: 30px; border: 0; font-size: 16px; outline: none; background: transparent; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+        .card { background: var(--card-bg); border-radius: 16px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.06); display: flex; flex-direction: column; border: 1px solid rgba(0,0,0,0.03);}
+        .card-header { padding: 12px 15px; color: white; font-weight: 700; display: flex; justify-content: space-between; align-items: center; font-size: 0.95rem;}
+        .bg-Nord { background: var(--nord); } .bg-Sud { background: var(--sud); } .bg-Est { background: var(--est); } .bg-Ouest { background: var(--ouest); }
+        .card-body { padding: 15px; flex-grow: 1; font-size: 0.9rem; }
+        .badges { display: flex; gap: 8px; margin-bottom: 12px; font-weight: bold; }
+        .badge { background: #f1f3f5; padding: 5px 10px; border-radius: 6px; font-size: 0.8em; color: #495057; border: 1px solid #e9ecef;}
+        .trace-row { margin-bottom: 10px; line-height: 1.4; border-left: 3px solid var(--primary); padding-left: 10px;}
+        .trace-label { color: var(--primary); font-weight: 800; display: block; font-size: 0.75em; text-transform: uppercase; margin-bottom: 2px;}
+        .card-footer { padding: 12px; background: #f8f9fa; border-top: 1px solid #f0f0f0; display: flex; gap: 10px; }
+        
+        .btn { padding: 12px; border-radius: 10px; font-weight: 700; font-size: 0.9rem; flex: 1; text-align: center; border: none; cursor: pointer; text-decoration: none; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 5px;}
+        .btn-map { background: white; color: var(--primary); border: 2px solid #e9ecef; }
+        .btn-dl { background: var(--primary); color: white; box-shadow: 0 4px 10px rgba(0,111,62,0.2); }
+
+        .map-container { height: 0; overflow: hidden; transition: height 0.3s ease; background: #eee; position: relative;}
+        .map-container.active { height: 300px; }
+        iframe { width: 100%; height: 100%; border: none; }
+
+        .add-annonce-box { background: #e3f2fd; padding: 20px; border-radius: 16px; margin-bottom: 25px; border: 1px solid #bbdefb; text-align: center; }
+        .form-input { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box; font-family: inherit; font-size: 1rem; }
+        .annonce-card { background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 20px; border: 1px solid #eee; display: flex; flex-direction: column; }
+        .annonce-img { width: 100%; height: 220px; object-fit: cover; background: #eee; }
+        .annonce-body { padding: 15px; position: relative; }
+        .annonce-type { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; margin-bottom: 5px; }
+        .type-vente { background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9;}
+        .annonce-price { position: absolute; top: -15px; right: 15px; background: var(--primary); color: white; padding: 8px 15px; border-radius: 30px; font-weight: 800; }
+        .annonce-title { margin: 5px 0 5px 0; font-size: 1.2rem; color: #333; font-weight: 800; }
+        .annonce-desc { color: #555; font-size: 0.95rem; line-height: 1.5; margin-bottom: 15px; }
+        .btn-contact { background: #f8f9fa; color: #333; text-decoration: none; padding: 8px 15px; border-radius: 20px; font-weight: bold; border: 1px solid #ddd; display: flex; align-items: center; gap: 5px; }
+
+        .newsletter-list { list-style: none; padding: 0; margin: 0;}
+        .newsletter-item { background: white; padding: 20px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.03); border: 1px solid #f0f0f0; display: flex; align-items: center; justify-content: space-between; }
+        .btn-read { background: #e3f2fd; color: #1976D2; padding: 8px 18px; border-radius: 20px; font-size: 0.85rem; font-weight: 700; text-decoration: none;}
+
+        .licence-card { background: white; border-radius: 16px; padding: 20px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.05); min-height: 200px; display: flex; flex-direction: column; justify-content: center; align-items: center; border: 2px dashed #ddd; position: relative; overflow: hidden; }
+        .licence-card.has-file { border: 2px solid var(--primary); padding: 0; background: #333; }
+        .licence-preview { width: 100%; height: auto; max-height: 70vh; object-fit: contain; display: none; }
+        .pdf-preview { width: 100%; height: 500px; display: none; border: none; }
+        .btn-upload { background: #e3f2fd; color: #1565C0; padding: 15px 30px; border-radius: 30px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 10px; margin-top: 15px; }
+        .btn-delete-licence { position: absolute; top: 15px; right: 15px; background: rgba(255,255,255,0.9); color: #d35400; width: 40px; height: 40px; border-radius: 50%; display: none; align-items: center; justify-content: center; cursor: pointer; border: none; z-index: 10; }
+
+        .my-contact-card { background: white; padding: 20px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: center; border-top: 5px solid var(--primary); }
+        .ice-input { width: 100%; padding: 15px; margin-bottom: 15px; border: 2px solid #eee; border-radius: 10px; font-size: 1.2rem; text-align: center; font-weight: bold; box-sizing: border-box; }
+        .btn-call-ice { display: none; width: 100%; margin-top: 15px; padding: 15px; background: var(--primary); color: white; font-size: 1.1rem; border-radius: 10px; text-decoration: none; font-weight: bold; box-shadow: 0 4px 10px rgba(0,111,62,0.3); box-sizing: border-box; }
+        .sos-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .btn-sos { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; border-radius: 16px; text-decoration: none; color: white; font-weight: 800; font-size: 1.2rem; box-shadow: 0 4px 10px rgba(0,0,0,0.15); transition: transform 0.1s; }
+        .bg-pompier { background: linear-gradient(135deg, #ff416c, #ff4b2b); }
+        .bg-samu { background: white; color: #2c3e50; border: 2px solid #eee; }
+        .bg-police { background: linear-gradient(135deg, #2980b9, #2c3e50); }
+        .bg-112 { background: linear-gradient(135deg, #f1c40f, #f39c12); }
+
+        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; height: var(--nav-height); background: white; border-top: 1px solid #e0e0e0; display: flex; justify-content: space-around; align-items: center; z-index: 1000; box-shadow: 0 -4px 20px rgba(0,0,0,0.03); padding-bottom: env(safe-area-inset-bottom); }
+        .nav-item { border: none; background: none; flex: 1; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #95a5a6; font-size: 0.60rem; font-weight: 600; cursor: pointer; transition: 0.2s; padding-top: 5px; }
+        .nav-item span { font-size: 1.3rem; margin-bottom: 3px; display: block;}
+        .nav-item.active { color: var(--primary); }
+        .copyright-footer { text-align: center; margin-top: 40px; padding-bottom: 10px; color: #bdc3c7; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; }
+    </style>
+</head>
+<body>
+
+<header>
+    <img src="logo.jpg" alt="Logo" class="header-logo">
+    <div class="header-text">
+        <h1>Cercle Cyclo Nayais</h1>
+        <span class="page-title" id="header-subtitle">Accueil & Actualités</span>
+    </div>
+</header>
+
+<div id="page-accueil" class="page-section active">
+    <div class="welcome-box">
+        <h2>Bienvenue ! 🚴‍♂️</h2>
+        <p style="margin:0; opacity: 0.9;">Retrouvez l'essentiel de la vie du club.</p>
+    </div>
+
+    <div class="section-separator">📅 Au Programme</div>
+    
+    <div class="news-card">
+        <span class="news-date" style="background:#e3f2fd; color:#1976d2;">Dimanche 8 Mars 2026</span>
+        <h3 class="news-title">❄️ Sortie Raquettes à neige</h3>
+        <div class="news-content">
+            <p><strong>Rassemblement :</strong> Parking secteur Pourtalet / Araillé.<br>
+            <strong>Point GPS :</strong> RH8J+3QQ Laruns.<br>
+            <strong>Horaires :</strong> 9h00 (départ 9h30).</p>
+            <p><strong>Matériel :</strong> Tenue chaude et raquettes. Location possible à Laruns (Locaski). <strong>Amenez votre casse-croûte</strong>.</p>
+            <div style="margin-top: 15px;">
+                <a href="mailto:cercle.cyclo.nayais@gmail.com?subject=Confirmation%20Presence%20Sortie%20Raquettes&body=Bonjour%2C%0A%0AJe%20confirme%20ma%20presence%20pour%20la%20sortie%20raquettes%20du%208%20mars.%0A%0ANom%20%3A%0APrenom%20%3A%0A%0AMerci." class="btn btn-dl">
+                    📧 Confirmer ma présence
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="news-card">
+        <span class="news-date" style="background:#e8f5e9; color:#1b5e20;">Sorties Cyclo</span>
+        <h3 class="news-title">Planning Mensuel</h3>
+        <div class="news-content">
+            Consultez les itinéraires du mois en cours.
+            <div style="margin-top: 15px;">
+                <a href="https://92nono64.github.io/parcours-ccnay-janvier-2026/" target="_blank" class="btn btn-dl">📅 Voir le programme</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="copyright-footer">&copy; CCNAY 2026 - Toute reproduction est interdite</div>
+</div>
+
+<div id="page-catalogue" class="page-section">
+    <div class="search-box"><input type="text" id="search" onkeyup="filter()" placeholder="🔍 Chercher un parcours..."></div>
+    <div id="count" style="text-align:center; margin-bottom:15px; color:#888;">Chargement...</div>
+    <div class="grid" id="grid"></div>
+</div>
+
+<div id="page-gps" class="page-section">
+    <div class="section-separator">📍 Ma Position GPS</div>
+    <div id="gps-map"></div>
+    <div id="gps-status" style="text-align:center; margin-bottom:10px; font-size:0.8rem; color:#666;">GPS Inactif</div>
+    <div class="gps-controls">
+        <button id="btn-gps-toggle" class="btn" onclick="toggleGPS()">📍 Activer mon GPS</button>
+        <button id="btn-gps-share" class="btn" onclick="shareGPS()">📤 Partager ma position</button>
+    </div>
+    <p style="font-size:0.75rem; color:#888; text-align:center; margin-top:15px;">Le GPS s'éteint automatiquement quand vous changez d'onglet pour économiser votre batterie.</p>
+</div>
+
+<div id="page-vente" class="page-section">
+    <div class="welcome-box" style="background: var(--accent);">
+        <h2>Le Bon CCNay 🤝</h2>
+        <p style="margin:0; opacity: 0.9;">Vendez ou donnez votre matériel entre membres.</p>
+    </div>
+    <div class="add-annonce-box">
+        <h3 style="margin-top:0; color:#1565C0;">📢 Déposer une annonce</h3>
+        <select id="v-type" class="form-input" style="font-weight:bold;">
+            <option value="Vente">💰 Je Vends</option>
+            <option value="Echange">🔄 J'Échange</option>
+            <option value="Don">🎁 Je Donne</option>
+        </select>
+        <input type="text" id="v-nom" class="form-input" placeholder="Votre Nom">
+        <input type="tel" id="v-tel" class="form-input" placeholder="Votre Téléphone">
+        <input type="text" id="v-titre" class="form-input" placeholder="Objet">
+        <input type="text" id="v-prix" class="form-input" placeholder="Prix">
+        <textarea id="v-desc" class="form-input" placeholder="Description..."></textarea>
+        <button class="btn btn-dl" style="width:100%;" onclick="sendAnnonceEmail()">📧 Préparer l'email</button>
+    </div>
+    <div class="annonce-card">
+        <img src="https://raw.githubusercontent.com/92Nono64/APPCCNAY/main/TC2026.jpg" class="annonce-img">
+        <div class="annonce-body">
+            <span class="annonce-price">1600€</span>
+            <span class="annonce-type type-vente">💰 VENTE</span>
+            <h3 class="annonce-title">Specialized Élite Roubaix 2017</h3>
+            <p class="annonce-desc">Taille 56. Très bon état. Thierry 06 03 15 62 75.</p>
+            <div class="annonce-contact"><span class="contact-name">👤 Thierry Crapoulet</span><a href="tel:0603156275" class="btn-contact">📞 Appeler</a></div>
+        </div>
+    </div>
+</div>
+
+<div id="page-newsletter" class="page-section">
+    <div style="text-align: center; margin-bottom: 30px;"><h2 style="color:var(--primary);">📰 Gazette du Guidon</h2></div>
+    <ul class="newsletter-list">
+        <li class="newsletter-item">
+            <div class="nl-info"><strong>Février 2026</strong><span>27/02/2026</span></div>
+            <a href="https://cdn.eu.yapla.com/company/CPYSmiRO92lagoV7GubI1LxC3/asset/files/Newsletter_F%C3%A9vrier_2026_liens_Op.pdf" target="_blank" class="btn-read">Lire PDF</a>
+        </li>
+        <li class="newsletter-item">
+            <div class="nl-info"><strong>Janvier 2026</strong><span>30/01/2026</span></div>
+            <a href="https://cdn.eu.yapla.com/company/CPYSmiRO92lagoV7GubI1LxC3/asset/files/Newsletter_Janvier_2026_Op_Liens.pdf" target="_blank" class="btn-read">Lire PDF</a>
+        </li>
+    </ul>
+</div>
+
+<div id="page-ffvelo" class="page-section">
+    <div class="section-separator">Ma Licence</div>
+    <div class="licence-card" id="licence-container">
+        <div id="licence-empty-state">
+            <label for="licence-upload" class="btn-upload">📤 Importer ma licence</label>
+            <input type="file" id="licence-upload" accept="image/*,application/pdf" style="display:none" onchange="handleLicenceUpload(this)">
+        </div>
+        <img id="licence-img-preview" class="licence-preview">
+        <iframe id="licence-pdf-preview" class="pdf-preview"></iframe>
+        <button id="btn-delete-licence" class="btn-delete-licence" onclick="deleteLicence()">🗑️</button>
+    </div>
+</div>
+
+<div id="page-urgence" class="page-section">
+    <div class="section-separator">👤 Mon Contact d'Urgence</div>
+    <div class="my-contact-card">
+        <input type="tel" id="ice-input" class="ice-input" placeholder="06 00 00 00 00">
+        <button class="btn btn-dl" style="background:#333; margin-bottom:10px;" onclick="saveContact()">💾 Sauver</button>
+        <a href="#" id="btn-call-ice" class="btn-call-ice">📞 APPELER MON CONTACT</a>
+    </div>
+    <div class="sos-grid">
+        <a href="tel:18" class="btn-sos bg-pompier"><span>🚒</span> 18</a>
+        <a href="tel:17" class="btn-sos bg-police"><span>👮</span> 17</a>
+        <a href="tel:15" class="btn-sos bg-samu" style="color:#333;"><span>🚑</span> 15</a>
+        <a href="tel:112" class="btn-sos bg-112"><span>🇪🇺</span> 112</a>
+    </div>
+</div>
+
+<nav class="bottom-nav">
+    <button class="nav-item active" onclick="switchPage('accueil', this)"><span>🏠</span> Accueil</button>
+    <button class="nav-item" onclick="switchPage('catalogue', this)"><span>🚴</span> Parcours</button>
+    <button class="nav-item" onclick="switchPage('gps', this)"><span>📍</span> GPS</button>
+    <button class="nav-item" onclick="switchPage('vente', this)"><span>🤝</span> Le Bon CCNay</button>
+    <button class="nav-item" onclick="switchPage('newsletter', this)"><span>📰</span> Infos</button>
+    <button class="nav-item" onclick="switchPage('urgence', this)"><span>🆘</span> Urgence</button>
+</nav>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+// --- DONNÉES CATALOGUE (TOUS LES PARCOURS) ---
+const routes = [
+  {id:"001", z:"Nord", d1:"56km", d2:"49km", u:"https://www.visugpx.com/iGnthdT0l9", t1:"Nay, Mirepeix, Lagos, Espoey, Lourenties, Arrien, Espéchède, Ouillon, Serre-Morlaas, Ousse, Assat, Baliros, Arros-Nay, Nay", t2:"Soumoulou, Limendous, Andoins, Serre-Morlaas et retour commun"},
+  {id:"002", z:"Nord", d1:"72km", d2:"61km", u:"https://www.visugpx.com/t6RjuRPcRM", t1:"Nay, Baudreix, Angaïs, Ousse, Morlaas, St Jammes, Gabaston, Sedzére, Arrien, Gardéres, Luquet, Espoey, Lagos, Bois de Lagos, Bénéjacq, Coarraze, Nay", t2:"Andoins, Espoey et itinéraire commun"},
+  {id:"003", z:"Ouest", d1:"56km", d2:"47km", u:"https://www.visugpx.com/XJkaHCdlPx", t1:"Nay, Igon, Asson, Bruges, Vallée Heureuse, Mazères, Aressy, Assat, Bordes, Mirepeix, Nay", t2:"Chapelle de Pardies-Piétat, Baliros, Assat et retour commun"},
+  {id:"004", z:"Ouest", d1:"65km", d2:"57km", u:"https://www.visugpx.com/lYVOcjdqW9", t1:"Nay, Arros, Les Pindats, Haut de Rébénacq, Sévignacq, Louvie, Capbis, Zoo d'Asson, Quartier Versailles, Croix des Hauteurs, Montaut, Coarraze, Nay", t2:"Asson, Igon, Coarraze, Nay"},
+  {id:"005", z:"Est", d1:"75km", d2:"74km", u:"https://www.visugpx.com/OMvMAupieb", t1:"Nay, Coarraze, Montaut, Lestelle, Peyrouse, Loubajac, Bartrès, Adé, Lanne, Bénac, Orincles, Paréac, Bouréac, Lézignan, Lourdes, Lestelle, Igon, Nay", t2:"Lourdes, Adé et retour commun"},
+  {id:"006", z:"Est", d1:"81km", d2:"73km", u:"https://www.visugpx.com/Fxv19E2LXS", t1:"Nay, Igon, Lestelle, Omex, Aspin, Lugagnan, Juncalas, Col de Lingous, Arcizac ez Angles, Lézignan, Bouréac, Paréac, Julos, Adé, Bartrès, Loubajac, Saint Vincent, Coarraze, Nay", t2:"Lourdes, Lézignan et retour commun"},
+  {id:"008", z:"Est", d1:"83km", d2:"61km", u:"https://www.visugpx.com/l8y9ZmWiOo", t1:"Nay, RP 4 chemins, Coarraze, St Vincent, Pontacq, Ossun, Benac, Hibarette, Côte d'Hibarette, Lourdes, St Pé, Nay", t2:"Adé, Lourdes et itinéraire commun"},
+  {id:"009", z:"Est", d1:"83km", d2:"61km", u:"https://www.visugpx.com/UXtXnejf4A", t1:"Nay, Coarraze, Montaut, St Pé, Lourdes Gare, Averan, Barry, Lanne, Ossun, Haut de Pontacq, Livron, Hours, Lucgarier, Lagos, Mirepeix, Nay", t2:"Pontacq, Labatmale, Bénéjacq, Nay"},
+  {id:"010", z:"Ouest", d1:"65km", d2:"50km", u:"https://www.visugpx.com/WtawmuJKqj", t1:"Nay, Lycée St Jo, Les Labassères, Haut de Bosdarros, Les Pindats, Bosdarros, Rébénacq, Ste Colome, Mifaget, Bruges, Asson, Coarraze, Bénéjacq, Lagos, Mirepeix, Nay", t2:"haut de Lys, St Colome et retour commun"},
+  {id:"011", z:"Nord", d1:"72km", d2:"61km", u:"https://www.visugpx.com/DHrwqiEOxl", t1:"Nay, Mirepeix, Lagos, Espoey, Luquet, Gardères, Aast, Ger, Pontacq, Loubajacq, Peyrouse, St Pé, Igon, Asson, Nay", t2:"Pontacq et retour commun"},
+  {id:"012", z:"Ouest", d1:"65km", d2:"55km", u:"https://www.visugpx.com/DZdNBb98zZ", t1:"Nay, Pardies-Pietat, Gelos, Laroin, Artiguelouve, Aubertin, Haut de Bauch, Gan, Bosdarros, les Pindats, Arros Nay, Bourdettes, Nay", t2:"Gan et retour commun"},
+  {id:"013", z:"Nord", d1:"70km", d2:"61km", u:"https://www.visugpx.com/VZuQ0PYYos", t1:"Nay, Lagos, Lucgarier, Soumoulou, Limendous, Espéchède, Sedzère, St Laurent de Bretagne, Riupeyrous, Escoubès, Barinque, Bernadets, Haut de Morlaas, Sendets, Ousse, Angais, Baudreix, Nay", t2:"St Jammes, Morlaas et retour commun"},
+  {id:"014", z:"Est", d1:"69km", d2:"58km", u:"https://www.visugpx.com/JfgeYGGsF2", t1:"Nay, Montaut, St Pé, Lourdes, Arcizac, Escoubès, Orincles, Layrisse, Bénac, Ossun, Pontacq, Labatamale, Bénéjacq, Nay", t2:"Adé, Ossun et retour commun"},
+  {id:"015", z:"Ouest", d1:"68km", d2:"52km", u:"https://www.visugpx.com/EqoNz3zUKG", t1:"Nay, Lycée St Jo, Haut de Lys, Rébénacq, Croix du Py, Bosdarros, Rapatout, Gelos, Mazeres, Aressy, Assat, Hameau de Ousse, Artigueloutan, Nousty, Soumoulou, Gomer, Beuste, Lagos, Mirepeix, Nay", t2:"Bordes, Mirepeix, Nay"},
+  {id:"016", z:"Ouest", d1:"74km", d2:"64km", u:"https://www.visugpx.com/GRw87MTBC8", t1:"Nay, Asson, Bruges, Lys, Sévignacq, Louvie-Juzon, Pé de-hourat, Capbis, col de Tisné, Arthez d'asson, Lestelle, Montaut, Barraille, Peyrade, Saint Vincent, Roseray, Bénéjacq, Nay", t2:"Igon, Coarraze, Nay"},
+  {id:"017", z:"Est", d1:"74km", d2:"64km", u:"https://www.visugpx.com/3OuYmylzUi", t1:"Nay, Bénéjacq, Labatmale, Pontacq, Ossun, Azereix, Ibos, Oursvelille, Lagarde, Siarrouy, Montaner, Ponsson-Dessus, Aast, Gardères, Luquet, Espoey, Lagos, Mirepeix, Nay", t2:"Ger, Oroix, Ponson-Dessus et retour commun"},
+  {id:"018", z:"Ouest", d1:"82km", d2:"67km", u:"https://www.visugpx.com/Af3lr0WXJf", t1:"Nay, Coarraze, Montaut, Lamarque-Pontacq, Loubajac, Peyrouse, Lestelle, Igon, Bruges, Mifaget, Ste Colome, Sévignacq, Haut de Lys, Nay, Nay", t2:"Lys, Haut de Lys et retour commun"},
+  {id:"019", z:"Nord", d1:"74km", d2:"65km", u:"https://www.visugpx.com/M6pIY6Bu8L", t1:"Nay, Angais, Ousse, Morlaas, Gabaston, Lespourcy, Sedze-Maubecq, Bédeille, Escaunets, Ponson-Dessus, Aast, Gardères, Luquet, Espoey, Lagos, Mirepeix, Nay", t2:"Séron, Gardères et retour commun"},
+  {id:"020", z:"Ouest", d1:"75km", d2:"67km", u:"https://www.visugpx.com/jLo2Itbmov", t1:"Nay, Arros Nay, Pardies, Gan, vallée les lies, St Faust, Lacommande, Lasseube, Belair, Rébénacq, Les Pindats, Arros Nay, Nay", t2:"haut de Bauch, Lasseube et retour commun"},
+  {id:"021", z:"Est", d1:"80km", d2:"73km", u:"https://www.visugpx.com/rlaP8HRy8B", t1:"Nay, Lestelle, St Pé, Lourdes, Arcizac, Escoubes, Bourréac, Paréac, Julos, Averan, Bénac, Lanne, Ossun Pontacq, St Vincent, Coarraze", t2:"Orincles, Bénac et retour commun"},
+  {id:"022", z:"Est", d1:"109km", d2:"89km", u:"https://www.visugpx.com/q3mKQpgbrz", t1:"Nay, Lestelle, St Pé, Lourdes, Escoubès, Loucrup, Montgaillard, Barbazan-Dessus, Montignac, Calavanté, Souyeaux, Boulin, Orleix, Bazet, Oursbelille, Ibos, Azereix, Ossun, Pontacq, Labatmale, Bénéjacq, Nay", t2:"Bernac-Debat, Allier, Barbazan Debat, Soues, Laloubère, Juillan, Ossun et retour commun"},
+  {id:"023", z:"Nord", d1:"105km", d2:"92km", u:"https://www.visugpx.com/DlKtb4J7S5", t1:"Nay, Mirepeix, Lagos, Espoey, Luquet, Gardère, Séron, Villenave, Luc Armau, Vidouze, Lahitte, Larreule, Vic, St Lézer, Siarrouy, Oursbellile, Ibos, Ossun, Pontacq, Labatmale, Bénéjacq, Nay", t2:"Villepinte, Vic et retour commun"},
+  {id:"024", z:"Sud", d1:"76km", d2:"66km", u:"https://www.visugpx.com/vI7ZRDkiJC", t1:"Nay, Arros Nay, Les Pindats, Rébénacq, la croix de Buzy, Buzy, Arudy, Izeste, Castet, Port de Castet, Louvie, Pédéhourat, Capbis, col de Tisné, Arthez d'Asson, Asson, Nay", t2:"Bruges, Asson et retour commun"},
+  {id:"025", z:"Est", d1:"108km", d2:"90km", u:"https://www.visugpx.com/vI7ZRDkiJC", t1:"Nay, Bénéjacq, Pontacq, Ossun, Lanne, Hibarette, Layrisse, Visker, Hiis, Montgaillard, Pouzac, Labassère, Soulagnets, Neuilh, Arrodets, Col Lingous, Juncalas, Lugagnan, Aspin, Ossen, Ségus, Lourdes, St Pé, Lestelle, Nay", t2:"Loucrup, Arcizac, col de Lingous et retour commun"},
+  {id:"026", z:"Est", d1:"109km", d2:"97km", u:"https://www.visugpx.com/2xiEX3lc3p", t1:"Lourdes, Adé, Lanne, Visker, Hiis, Orignac, Luc, Oléac, Ozon, Ricaud, Bonnemazon, Bourg de Bigorre, Sarlabous, Bastère, Bourg de Bigorre, Uzer, Haut de la Cote, Hauban, Orignac, Montgaillard, Loucrup, Arcizac, Lourdes", t2:"Bourg de Bigorre, D84 et retour commun"},
+  {id:"027", z:"Sud", d1:"138km", d2:"93km", u:"https://www.visugpx.com/F8iiA0h5qz", t1:"Nay, St Pé, Lourdes, Argeles, Pierrefitte, Viscos, Luz Ardiden, Sassis, Soulom, Beaucens, Préchac, Boo-Silhen, Lugagnan, Lourdes, St Pé, Montaut, Coarraze, Nay", t2:"Départ de Lourdes à 8h00"},
+  {id:"028", z:"Sud", d1:"105km", d2:"77km", u:"https://www.visugpx.com/M3PNMMesaN", t1:"Nay, St Jo, Haut de Lys, Sévignac, Louvie, Bielle, Gère, Laruns, Gabas, Bious artigue, Laruns, Aste, Castet, Louvie, Mifaget, Bruges, Asson, Nay", t2:"Laruns, Eaux-Bonnes, Aste et retour commun"},
+  {id:"029", z:"Sud", d1:"124km", d2:"92km", u:"https://www.visugpx.com/EY29YmeQgt", t1:"Nay, Lestelle, St Pé, Lourdes, Argeles, Pierrefitte-Nestalas, Cauterets, Parking Cambasque, Soulom, Beaucens, Préchac, Boo-Silhen, Lugagnan, Lourdes, St Pé, Montaut, Coarraze, Nay", t2:"Argeles, Saint Savin, Pierrefitte, et retour commun"},
+  {id:"030", z:"Sud", d1:"93km", d2:"85km", u:"https://www.visugpx.com/QQT3qyFkU7", t1:"Oloron, Aramits, Lanne, col de la Hourcère, col de Labays, Lourdios, Sarrance, Asasp, Bidos, Oloron", t2:"Col du Labays, Issor, Asasp et retourommun"},
+  {id:"031", z:"Sud", d1:"96km", d2:"72km", u:"https://www.visugpx.com/wfb82yoCvk", t1:"Montgaillard, Pouzac, Bagnères, Col les Palomières, Banios, Couret, Bulan, Esparros, Col de Coupe, Hèches, Sarrancolin, Arreau, Col d'Aspin, Sainte Marie de Campan, Campan, Bagnères, Montgaillard", t2:"Col de Coupe, Labastide, Capvern, Mauvezin, Cieutat, Orignac, Montgaillard"},
+  {id:"032", z:"Nord", d1:"106km", d2:"91km", u:"https://www.visugpx.com/1ZyZxvuBv6", t1:"Nay, Mirepeix, Lagos, Espoey, Luquet, Aast, Ponson-Dessus, Pontiac, Labatut, Monségur, Sombrun, Moncaup, Castillon, Escures, Maspie, Anoye, Lespourcy, Arrien, Limendous, Soumoulou, Gomer, Beuste, Lagos, Mirepeix, Nay", t2:"Monségur, Vidouze, Lucarré, Momy, Anoye et retour commun"},
+  {id:"033", z:"Sud", d1:"104km", d2:"102km", u:"https://www.visugpx.com/5HnYOLgaXk", t1:"Nay, Lestelle, St Pé, Lourdes, Omex, Segus, Aspin en Lavedan, Agos, Argeles, St Savin, Arcizans, Sireix, Bun, Arras en L., Gez, Sere en L., Salles, Agos, Lourdes, St Pé, Lestelle, Igon, Coarraze, Nay", t2:"Lourdes, Lugagnan, Boo, Ayros-Arbouix, Argeles, St Savin, Arcizans, Sireix, Bun, Arras en L., Argeles, Ayzac et retour commun"},
+  {id:"034", z:"Nord", d1:"106km", d2:"91km", u:"https://www.visugpx.com/6drOHxF2Ej", t1:"Nay, Baudreix, Angaïs, Sendets, Haut de Morlaas, St Castin, Navaille-Angos, Auga, Méracq, Arzacq, Morlanne, Arthez de Béarn, Lacq, Noguères, Tarsacq, Artiguelouve, Laroin, Rocade, Rontignon, Pardies, Arros, Nay", t2:"Bournos, Lonçon, Morlanne, Cescau, Artix, Noguères et retour commun"},
+  {id:"035", z:"Sud", d1:"104km", d2:"102km", u:"https://www.visugpx.com/gurTK0JV05", t1:"Nay, Lestelle, St Pé, Lourdes, Arcizac Ez Angles, col de Lingous, Juncalas, Lugagnan, Agos-Vidalos, Ouzous, Salles, Sere, col des Spandelles, Arthez, Asson, Nay", t2:"Lourdes, Lugagnan et retour commun"},
+  {id:"036", z:"Est", d1:"79km", d2:"70km", u:"https://www.visugpx.com/R3If8zTbqU", t1:"Nay, St Pé, Rieulhes, Lourdes, Ségus, Aspin en Lavedan, Lourdes, Lézignan, Bourréac, Paréac, , Barry, Averan, Adé, Bartres Loubajac, Pontacq, Bénéjacq, Nay", t2:"Lourdes et retour commun"},
+  {id:"037", z:"Sud", d1:"92km", d2:"82km", u:"https://www.visugpx.com/MNobTKy1ln", t1:"Nay, St Pé, Lourdes, Agos-Vidalos, Argeles, Saint Savin, Pierrefitte, Soulom, Préchac, Boo Silhen, Lugagnan, Lourdes, Loubajac, Pontacq, Bénéjacq, Nay", t2:"(Même circuit)"},
+  {id:"038", z:"Sud", d1:"81km", d2:"67km", u:"https://www.visugpx.com/kxF5HY8KOr", t1:"Nay, Arros-nay, Les Pindats, Sévignacq, Bescat, Izeste, Bielle, Gere, Aste, Béon, Castet, Louvie, Ste Colome, Mifaget, Bruges, Asson, Nay", t2:"Béon et retour commun"},
+  {id:"039", z:"Sud", d1:"87km", d2:"78km", u:"https://www.visugpx.com/ryL1NYh4ek", t1:"Nay, Mirepeix, Baudreix, Angaïs, Sendets, Haut de Morlaas, St Castin, Navailles-Angos, Bournos, Momas, Bourgaber, Beyrie en Bearn, Aussevielle, Golf Laroin, Laroin, Jurançon, Mazeres, Narcastet, Arros Nay, Nay", t2:"Montardon, Serre-Castet, aéroport, Uzein, Lespiau et retour commun"},
+  {id:"040", z:"Sud", d1:"84km", d2:"75km", u:"https://www.visugpx.com/QNE0owhyiN", t1:"Nay, Bénéjacq, Pontacq, Loubajac, Peyrouse, Saint Pé, Lestelle, Croix des Hauteurs, Capbis, Pé dé Hourat, Sainte Colome, Haut de Lys, St Jo et Nay", t2:"Lys, Haut de Lys et retour commun"},
+  {id:"041", z:"Nord", d1:"69km", d2:"57km", u:"https://www.visugpx.com/vTijxSCmNf", t1:"Nay, Mirepeix, Baudreix, Angaïs, Artigueloutan, Andoins, Ouillon, Morlaas, Saint-Jammes, Higuères-Souye, Barinque, Bernadets, Buros, Berlanne, Cami Salié, Ousse, Assat, Bordes, Baudreix, Mirepeix, Nay", t2:"Morlaas, Bernadets et retour commun"},
+  {id:"042", z:"Nord", d1:"75km", d2:"68km", u:"https://www.visugpx.com/SBK0EGKdcJ", t1:"Nay, Coarraze, Fontaine du Salut, Quartier Peyrade, Montaut, Saint-Vincent, Pontacq, Ger, Oroix, Ponson-Dessus, Séron, Saubole, Eslourenties, Lourenties, Limendous, Soumoulou, Gomer, Bois de Beuste, Beuste, Lagos, Mirepeix, Nay", t2:"Aast, Gardères, Eslourenties et retour commun"},
+  {id:"043", z:"Sud", d1:"64km", d2:"60km", u:"https://www.visugpx.com/TBwSsdFwIF", t1:"Nay, Bénéjacq, Saint-Vincent, Montaut, Lestelle, Croix des hauteurs, Quartier Versailles, Col de Tisné, Bruges, Lys, Les Pindats, Pietat, Pardies, Arros Nay, Nay", t2:"Lestelle, Igon, Asson, Quartier Versailles, Bruges, Lys, Haut de Lys, Arros Nay, Nay"},
+  {id:"044", z:"Nord", d1:"65km", d2:"57km", u:"https://www.visugpx.com/X9EJtpqDcv", t1:"Nay, Pardies-Pietat, Vallée Heureuse, Gelos, Rocade, Aressy, Assat, Ousse, Artigueloutan, Nousty, Soumoulou, Espoey, Barzun, Pontacq, Labatmale, Benejacq et Nay", t2:"Espoey, Lagos, Mirepeix et Nay"},
+  {id:"045", z:"Ouest", d1:"73km", d2:"65km", u:"https://www.visugpx.com/IsKhDe9K54", t1:"Nay, Mirepeix, Lagos, Angaïs, Hameau d'Ousse,Pont d'Assat, Mazères, Rocade, Jurançon, Gan, Rebenacq, Bains de Secours, Sevignacq, Louvie, Bruges, Asson et Nay", t2:"Nay, Baliros, Narcastet, Mazères et parcours commun"},
+  {id:"046", z:"Est", d1:"73km", d2:"61km", u:"https://www.visugpx.com/cZRl7c4TQL", t1:"Nay, Igon, St Pé, Lourdes gare, Arcizacq-Angles, Juncalas, Lugagnan, Aspin, Ségus, Lourdes, St Pé (Galette des Rois samedi), Montaut, Coarraze, RP 4 chemins, Nay", t2:"Lourdes , Pont neuf, Aspin et itinéraire commun"},
+  {id:"047", z:"Est", d1:"73km", d2:"66km", u:"https://www.visugpx.com/Y2tu7h91IY", t1:"Nay, Mirepeix, Bordes, Aressy, Bizanos, Idron, Ousse, Nousty, Soumoulou, Espoey, Livron, Barzun, Pontacq, Loubajacq, Peyrouse, Montaut, Coarraze et Nay", t2:"Nay, Benejacq, Beuste, Angaïs, Ousse et retour commun"},
+  {id:"048", z:"Nord", d1:"71km", d2:"65km", u:"https://www.visugpx.com/mkqfFAZR7y", t1:"Nay, Coarraze, St Vincent, Lamarque-Pontacq, Luquet, Gardères, Arrien, Sedzère, Gabaston, St Jammes, Morlaas, Ousse, Angaïs, Baudreix et Nay", t2:"Nay, Mirepeix, Lagos, Espoey, Luquet et itinéraire commun"},
+  {id:"049", z:"Sud", d1:"73km", d2:"61km", u:"https://www.visugpx.com/H1z39EsBkg", t1:"Nay, Asson, Bruges, Louvie, Castet, Béon, Gère-Belesten, Arudy, Buzy, Belair, Chemin Lamanet, Gan, Pietat et Nay", t2:"Louvie, Arudy et itinéraire commun"},
+  {id:"050", z:"Nord", d1:"71km", d2:"63km", u:"https://www.visugpx.com/ygxFjcGJXx", t1:"Nay,Mirepeix,Lagos, Beuste,Bois de Beuste, Lucgarier, Espoey, Livron,Bois de Barzun,Luquet,Gardères,Séron, Arrien,Lourenties,Limendous,Soumoulou, Nousty, Artigueloutan,Ousse, Assat, Baliros et Nay", t2:"Nay, Mirepeix, Lagos, Beuste, Bois de Beuste, Lucgarier, Espoey, Livron, Bois de Barzun, Luquet, Gardères,Séron,Arrien,Lourenties,Limendous,Soumoulou,Nousty,Ousse,Assat,Baliros et Nay"},
+  {id:"051", z:"Ouest", d1:"69km", d2:"53km", u:"https://www.visugpx.com/me80PwgFyP", t1:"Nay,Arros, Chapelle de Pietat,Haut de Pietat,Haut de Rontignon,Gelos,Rocade,Laroin,St Faust de Bas,St Faust,Rte de Lasseube,Gan,Côteaux de Guindalos,Gelos,Mazères,Baliros et Nay", t2:"Gan et retour commun"},
+  {id:"052", z:"Nord", d1:"68km", d2:"59km", u:"https://www.visugpx.com/JfwoLiIWpW", t1:"Nay, Bois de Bénéjacq, Labatmale, Pontacq, Barzun, Bois de Barzun, Luquet, Gardères, Séron, Saubole, Arrien, Lourenties, Limendous, Soumoulou, Nousty, Artigueloutan,Ousse, Angaïs, Baudreix et Nay", t2:"Lourenties et itinéraire commun"},
+  {id:"053", z:"Ouest", d1:"71km", d2:"55km", u:"https://www.visugpx.com/EXUByRmNK2", t1:"Nay, Bourdettes, Pardies-Pietat, Gan, Lasseube, Belair, Rte d'Oloron, Buzy, Arudy, Louvie-Juzon, Sevignacq-Meracq, Les Labassères, Arros de Nay et Nay", t2:"Belair,Rébénacq,Les Pindats, Arros de Nay et Nay"},
+  {id:"054", z:"Nord", d1:"64km", d2:"59km", u:"https://www.visugpx.com/0rm15VHwL1", t1:"Nay, Asson, Croix de Hauteurs, Lestelle, Montaut, Coarraze, Bénéjacq, Angaïs, Ousse, Idron, Bizanos, Mazères, Baliros, Nay", t2:"Igon, Lestelle et itinéraire commun"},
+  {id:"055", z:"Nord", d1:"65km", d2:"57km", u:"https://www.visugpx.com/qmw1hqbmh0", t1:"Nay,Pardies-Pietat,Vallée Heureuse, Gelos, Rocade, Aressy, Assat, Ousse, Artigueloutan, Nousty, Soumoulou, Espoey, Barzun, Pontacq, Labatmale, Benejacq et Nay", t2:"Espoey,Lagos,Mirepeix et Nay"},
+  {id:"056", z:"Nord", d1:"91km", d2:"72km", u:"https://www.visugpx.com/JtH5EK8bwM", t1:"Nay, Arros Nay, Pardies, Bosdarros, Rébénacq, Croix de Buzy, Chemin de Cams, Gan, vallée les lies, Laroin, Lescar, Rd point Aeroport, Montardon, Buros, Morlaas, Ousse, Angaïs, Baudreix, Nay", t2:"Gan et retour commun"},
+  {id:"057", z:"Sud", d1:"124km", d2:"96km", u:"https://www.visugpx.com/CPgLYYjv1V", t1:"Nay,Asson,Louvie,Laruns,Gourette,Col d'Aubisque,Col du Soulor,Arrens,Argelès,Lourdes,St Pé,Lestelle et Nay", t2:"Col du Soulor,Arbéost,Ferrieres,Asson et Nay"},
+  {id:"058", z:"Ouest", d1:"104km", d2:"100km", u:"https://www.visugpx.com/UU50uNk8cn", t1:"Nay, Baliros, Mazères, Gelos, Jurançon, Laroin, Artiguelouve, Arbus, Parbayse, Cuqueron, Monein, Lucq de Béarn, Ledeuix, Estos, Goés, Estialescq, Lasseube, Bel Air, Rébénacq, Les Pindats, Arros de Nay et Nay", t2:"Gan et retour commun"},
+  {id:"059", z:"Sud", d1:"115km", d2:"110km", u:"https://www.visugpx.com/81YUAe6fJg", t1:"Lourdes, Lugagnan, Bo-Silhen, Préchac, Beaucens, Luz, Gèdre, Cirque de Troumouse, Gèdre, Luz, Soulom, Argeles, Agos, Lourdes", t2:"Lac des Gloriettes et retour commun"},
+  {id:"060", z:"Est", d1:"101km", d2:"85km", u:"https://www.visugpx.com/67oPP8OJRe", t1:"Nay, Lestelle, Lourdes, Lugagnan, Berberust, Juncalas, Lingous, Neuilh, Loucrup, Visker, Bénac, Lanne, Adé, Bartrès, Loubajac, Peyrouse, Montaut, Coarraze, Nay", t2:"Arcizac ez Angles, Lourdes, Adé, retour commun"},
+  {id:"061", z:"Ouest", d1:"90km", d2:"75km", u:"https://www.visugpx.com/asXY9UuBBj", t1:"Nay, Haut de Lys, Sévignacq, Arudy, Bois du Bager, Lurbes, Escot, Marie-Blanque, Louvie-Juzon, Bruges, Asson, Nay", t2:"Bielle, Marie-Blanque, retour commun"},
+  {id:"062", z:"Nord", d1:"82km", d2:"70km", u:"https://www.visugpx.com/WuajZqQYTE", t1:"Nay,Mirepeix,Lagos,Angaïs,Artigueloutan,Andoins,Limendous,Lourenties,Arrien,Lombia, Bédeille,Escaunets,Ponsons-Dessus,Oroix,Ger,Pontacq,Labatmale,Bénéjacq et Nay", t2:"Bédeille,Séron,Gardères,Luquet,Pontacq et itinéraire commun"},
+  {id:"063", z:"Ouest", d1:"59km", d2:"54km", u:"https://www.visugpx.com/iE8e3vckBM", t1:"Nay, Arros, Avant Les Pindats,Vallée Heureuse, Quartier Rapatout, Bois de Gelos, Gan, Direction Oloron, Chemin de Lamanet, Rébénacq, Ht de la côte, Route de Lys, Bignalats, St Jo et Nay", t2:"Gan, Rébénacq et retour commun"},
+  {id:"065", z:"Nord", d1:"71km", d2:"65km", u:"https://www.visugpx.com/8COJ38y6fl", t1:"Nay, Pardies-Pietat, Gan, Route de Lasseube, quartier Miqueu, Haut de Bouch, Direction St Faust, Direction Artiguelouve, Lacommande, Lasseube, Belair, Rébénacq, Les Pindats, Arros-Nay, Nay", t2:"Aubertin, et retour commun"},
+  {id:"066", z:"Ouest", d1:"75km", d2:"73km", u:"https://www.visugpx.com/SDHfdp2TIK", t1:"Nay, Pt P, Baliros, Mazères, Jurançon, Nid Béarnais, Chapelle de Rousse,Dir Laroin, Las Hies, Gan, Rébénacq, Les Pindats, Arros Nay et Nay", t2:"Laroin,Jurançon,Gelos,Vallée Heureuse,Les Pindats,Arros Nay et Nay"},
+  {id:"067", z:"Est", d1:"82km", d2:"71km", u:"https://www.visugpx.com/ur26JbAKKK", t1:"Nay, Rd Pt 4Ch, Corraze, Montaut, Peyrouse, Loubajacq, Bartrés, Adé,Lourdes, Pont Neuf, Aspin, Ségus, St Pé, Igon, Asson,St Jo, Les Labassères, Arros-Nay et Nay", t2:"Lourdes, Pont Neuf et retour commun"},
+  {id:"068", z:"Est", d1:"72km", d2:"61km", u:"https://www.visugpx.com/6d8iiHvF6U", t1:"Nay, Rd Pt 4 Chemin, Coarraze, St Vincent, Labatmale, Pontacq, Ossun, Juillian, Adé, Lourdes, St Pé, Igon, Asson et Nay", t2:"Adé, Lourdes, St Pé, Igon, Coarraze et Nay"},
+  {id:"069", z:"Nord", d1:"70km", d2:"63km", u:"https://www.visugpx.com/0PQimBcFr7", t1:"Nay, Mirepeix, Lagos, Beuste, Bois de Beuste, Lucgarier, Espoey, Livron, Barzun, Bois de Barzun, D42,Luquet, Gardères, Séron, Rte de Lombia, Lourenties, Limendous, Soumoulou, Artigueloutan, Ousse, Assat, Baliros et Nay", t2:"Eslourenties, Lourenties et retour commun"},
+  {id:"070", z:"Ouest", d1:"91km", d2:"68km", u:"https://www.visugpx.com/lFcq3wEfLm", t1:"Nay, Arros-Nay, Direction les Pindats, montée Tressere, Les Pindats, chemin Barbé, Rébénacq, Bel-Air, direction Oloron, Escou, Goes, Oloron ste Marie, Eysus, Lurbe st Christau, Arudy, Louvie Juzon, Bruges, Asson et Nay", t2:"Herrere, Buzy, Arudy et retour commun"},
+  {id:"071", z:"Nord", d1:"116km", d2:"93km", u:"https://www.visugpx.com/t9Rl4AVCSu", t1:"Nay, Baudreix, Angais, Ousse, Haut Morlaas, Maucor, Bernadets, Anos, Lasclaveries, Auriac, Thèze, Arzacq, Poursiugues, Garlin, Lannecaube, Lussagnet, Monassut, St Laurent, Sedzère, Arrien, Limendous, Gomer, Lucgarier, Lagos, Mirepeix, Nay", t2:"Sevignacq, Carrere, Mouhous, Lannecaube et retour commun"},
+  {id:"072", z:"Ouest", d1:"98km", d2:"81km", u:"https://www.visugpx.com/bauiLwFghk", t1:"Nay, Arros-Nay, Pardies-Pietat, Gan, Lasseube, Direction Oloron, Estialescq, Lucq de Béarn, Monein, Cuqueron, Arbus, Laroin, Mazères, Baliros, Nay", t2:"Monein et retour commun"},
+  {id:"073", z:"Est", d1:"91km", d2:"84km", u:"https://www.visugpx.com/RA6RxATuNp", t1:"Nay, Coarraze, Montaut, Segus, Ossen, Vigier, Aspin, Lugagnan, Berbérust, Juncalas, col de Lingous, Germ sur l'Oussouet, Col de la croix Blanche, Arrodes ez Angles, Lahitte, Escoubès, Bourréac, Lézignan, Lourdes, Lestelle, Igon, Nay", t2:"Lourdes, Lugagnan et retour commun"},
+  {id:"074", z:"Sud", d1:"149km", d2:"104km", u:"https://www.visugpx.com/4JlKuFAfOe", t1:"Nay, Coarraze, Lestelle, Lourdes, Loucrup, Trébons, Bagnères de Bigorre, Campan, Col du Tourmalet, Luz, Pierrefitte, Argelès, Agos-Vidalos, Lugagnan, Lourdes, Lestelle, Igon, Coarraze, Nay", t2:"Même circuit au départ de Lourdes"},
+  {id:"075", z:"Est", d1:"92km", d2:"86km", u:"https://www.visugpx.com/RC4tP7vFZx", t1:"Nay, Lagos, Hours, Livron, Pontacq, Ossun, Lanne, Bénac, Visker, Loucrup, Astugue, Neuilh, Germ, col du Lingous, Lugagnan, Lourdes, Lestelle, Igon, Nay", t2:"Orincles, Escoubès, Arcizacq, Col du Lingous et retour commun"},
+  {id:"076", z:"Ouest", d1:"97km", d2:"76km", u:"https://www.visugpx.com/eNwtqVqnB2", t1:"Nay, Pardies-Pietat, Mazère, Laroin, Tarsacq, Pardies, Noguères, Lahourcade, Cardesse, Bois du Laring, Lasseube, Bel-Air, Rébénacq, Les Pindats, Arros Nay, Nay", t2:"Artiguelouve, Lacommande, Lasseube et retour commun"},
+  {id:"077", z:"Nord", d1:"105km", d2:"81km", u:"https://www.visugpx.com/pMKyBdpZMb", t1:"Nay, Lagos, Espoey, Luquet, Gardères, Aast, Ponson Dessus, St Lézer, Vic en Bigorre, Rabastens, Lescurry, Soréac, Louit, Sabalos, Orleix, Bours, Bordères sur l'Echez, Ibos, Azereix, Ossun, Pontacq, Labatmale, bénéjacq, Nay", t2:"Montaner, Siarrouy, Lagarde, Oursbelille, Ibos et retour commun"},
+  {id:"078", z:"Est", d1:"80km", d2:"72km", u:"https://www.visugpx.com/y3x96YxYPA", t1:"Nay, Lagos, Espoey, Limendous, Lourenties, Eslourenties, Saubole, Aast, Entrée Ponson-Dessus, Oroix, Pintac, Dir Bordères sur l'Echez, Ibos, Azereix, Ossun, Pontacq, Labatmale, Bénéjacq, Nay", t2:"Luquet, Gardères, Aast et retour commun"},
+  {id:"079", z:"Ouest", d1:"65km", d2:"61km", u:"https://www.visugpx.com/obpYp8i5pJ", t1:"Nay, Asson, La bascule, Chemin de Brune, Sarramayou, Bruges, chemin du Boila, chemin de Prade, Route des Labassères, Arros-Nay, Baliros, Assat, Ousse, Nousty, Gomer, Lucgarier, Lagos, Bénéjacq, Nay", t2:"Bruges et retour commun"},
+  {id:"080", z:"Ouest", d1:"80km", d2:"67km", u:"https://www.visugpx.com/HKVLUigl47", t1:"Nay, Labassère, Arros, Les Pindats, Rébénacq, Gan, Lasseube, Bel air, Busy, Louvie Juzon, Bruges, Asson et Nay", t2:"Pardies Pietat, Gan et retour commun Nay"},
+  {id:"081", z:"Ouest", d1:"100km", d2:"84km", u:"https://www.visugpx.com/es11USg8e8", t1:"Nay, Arros-Nay, Pardies, Mazère, Rocade, Artiguelouve, Abos, Monein, D9, Cardesse, Ledeuix, Goes, Lasseube, Gan, Pardies-Pietat et Nay", t2:"route du Laring, Lasseube retour commun Nay"},
+  {id:"082", z:"Sud", d1:"121km", d2:"107km", u:"https://www.visugpx.com/lQYueNGcoB", t1:"Nay, Coarraze, Igon, Lestelle, Lourdes, Lugagnan, Agos-Vidalos, Argelès, Saint-Savin, Sireix, Estaing, col des Bordères, Arrens, Aucun, Station Couraduque, Aucun, Argelès, Agos-Vidalos, Lugagnan, Lourdes, Lestelle, Coarraze", t2:"Argelès et retour commun"},
+  {id:"083", z:"Sud", d1:"97km", d2:"87km", u:"https://www.visugpx.com/1fwr0D0zjM", t1:"Nay, Asson, Bruges, Louvie-Juzon, Laruns, Col d'Aubisque, col du Soulor, Arthez d'Asson, Asson, Nay", t2:"Nay, Asson, Arthez d'Asson, col du Soulor, col d'Aubisque et retour même trajet"},
+  {id:"084", z:"Est", d1:"67km", d2:"59km", u:"https://www.visugpx.com/8NFWSqjycF", t1:"Nay, Igon, direction Asson, Déchetterie, Croix des Hauteurs, Lestelle, St Pé, Peyrouse, dir Loubajac, dir Lac de Lourdes, Lourdes, Bartrès, Loubajac, Pontacq, Livron, Hours, Lucgarier, Lagos, Mirepeix et Nay", t2:"Lestelle et retour commun Nay"},
+  {id:"085", z:"Ouest", d1:"63km", d2:"50km", u:"https://www.visugpx.com/N6p6i6sNDq", t1:"Nay, Arros-Nay, Les Pindats, chemin de Barbé, chemin de Rébénacq, Rébénacq, Bélair, N134, chemin de Line, D334, Lasseube, Gan, Jurançon, Mazères, Narcastet, Baliros, Arros-Nay et Nay", t2:"Gan et retour commun Nay"},
+  {id:"086", z:"Est", d1:"67km", d2:"59km", u:"https://www.visugpx.com/MB1bYPg1RU", t1:"Nay, Bénéjacq, Ossun, Juillan, Louey, Lanne, Adé, Bartrès, Loubajac, Peyrouse, Saint Pé, Lestelle, Igon, Coarraze et Nay", t2:"Adé et retour commun Nay"},
+  {id:"087", z:"Nord", d1:"75km", d2:"55km", u:"https://www.visugpx.com/6Aox0SEXka", t1:"Nay, Baudreix, Angaïs, Ousse, Cami Salié, Berlanne, Buros, Montardon, Serre-Castet, Saint Castin, Morlaas, Arrien, Limendous, Soumoulou, Lucgarier, Lagos, Mirepeix et Nay", t2:"Adé et retour commun Nay"},
+  {id:"088", z:"Nord", d1:"64km", d2:"52km", u:"https://www.visugpx.com/T9PUjsCeH4", t1:"Nay, Pardies-Pietat, Assat, Bordes Angaïs, Beuste, Lucgarier, Hours, Livron, Pontacq, Loubajac, Peyrouse, Lestelle, Igon, Coarraze et Nay", t2:"Mirepeix, Lagos, Beuste et retour commun Nay"},
+  {id:"089", z:"Est", d1:"86km", d2:"67km", u:"https://www.visugpx.com/hw9wxpR02W", t1:"Nay, Bénéjacq, Labatmale, Pontacq, Ossun, Juillan, Odos, Momères, Hibarette, Bénac, Orincles, Paréac, Lézignan, Lourdes, St Pé, Lestelle, Asson, chemin d'Aurous, route de Lys, St Joseph et Nay", t2:"Lanne, Bénac et retour commun jusqu'à Lestelle puis Igon, Coarraze et Nay"},
+  {id:"090", z:"Nord", d1:"86km", d2:"73km", u:"https://www.visugpx.com/2kGV59jpPK", t1:"Nay, Mirepeix, Baudreix, Angais, Artigueloutan, Andoins, Haut de Morlaas, Maucor, St Castin, Navailles-Angos, Bournos, Aubin, Caubios-Loos, Aéroport, Lescar, Rocade, Mazère, Baliros et Nay", t2:"Serre-Castet, Sauvagnon, Aéroport et retour commun"},
+  {id:"091", z:"Ouest", d1:"77km", d2:"70km", u:"https://www.visugpx.com/S9JpatYuc4", t1:"Nay, Arros-Nay, Pardies Pietat, Gan, Sortie de Gan direction Oloron, Rd point direction chemin de Berdoulou, Chemin de Lamanet, Croix de Buzy, Bel-Air, Lasseube, Chemin Guilhems, Gan, Chemin de Guindalos, Mazères, Aressy, Assat, Angais, Bénéjacq et Nay", t2:"Rébénacq, Gan et retour commun"},
+  {id:"092", z:"Nord", d1:"88km", d2:"80km", u:"https://www.visugpx.com/lwoxpueKnF", t1:"Nay, Bénéjacq, Pontacq, Barzun, Rue du Bois, D42, Luquet, Gardères, Aast, Ger, D202, Tarasteix, Lagarde, Ibos, Ossun, Pontacq, Saint Vincent, Coarraze et Nay", t2:"D129, Ger et retour commun"},
+  {id:"093", z:"Est", d1:"84km", d2:"75km", u:"https://www.visugpx.com/ngpiRawnzC", t1:"Nay, St Jo, Les Labassères, Arros-Nay, Baliros, Assat, Artigueloutan, Gomer, Lucgarier, Hours, Livron, Cote de Capbat, D42, Pontacq, Lamarque, Montaut, Lestelle, Chemin de Brosou, Arthez d'Asson, col de Tisné, Bruges, Route du Boala, St Jo et Nay", t2:"Asson et Nay"},
+  {id:"094", z:"Sud", d1:"102km", d2:"-", u:"https://www.visugpx.com/H4VCrAYoQD", t1:"Lourdes, voie verte, Pierrefitte, Luz saint sauveur, Tourmalet, Luz saint Sauveur, Beaucens, Préchac, Boo-Silhen, Lugagnan, Lourdes", t2:""},
+  {id:"095", z:"Ouest", d1:"113km", d2:"97km", u:"https://www.visugpx.com/zmTI2qtbBM", t1:"Nay, Arros-Nay, Mazères, Laroin, Abos, Pardies, Mourenx, Viellsgure, DIR Navarrenx, Jasses, Saucède, Ledeuix, Goes, Escout, Buzy, Sévignac, Haut de Lys, St Jo, Nay", t2:"Monein, Cardesse, Ledeuix et retour commun"},
+  {id:"096", z:"Sud", d1:"95km", d2:"83km", u:"https://www.visugpx.com/vaE0S6T3lJ", t1:"Lourdes, Omex, Ségus, Aspin en Lavedan, Agos-Vidalos, Ouzous, Sere en Lavedan, Arras en Lavedan, Arrens, Barrage du Tech, Arrens, Aucun, Col de Couraduque, Aucun, Bun, Arcizans, Saint Savin, Argeles, Voie verte, Lourdes", t2:"retour commun"},
+  {id:"097", z:"Ouest", d1:"57km", d2:"48km", u:"https://www.visugpx.com/YvwPzivBD9", t1:"Nay, Arros-Nay, Les Pindats, Haut de Rébénacq, D389, route derrière la carrière, route des bains de Sencours, Sévignacq, Sainte Colome, route de Lys, Bruges, Asson, Quartier Versailles, Lestelle, Montaut, Corraze et Nay", t2:"Haut de Lys, Lys, Bruges, Asson, Igon, Coarraze et Nay"},
+  {id:"098", z:"Nord", d1:"67km", d2:"61km", u:"https://www.visugpx.com/LX6m39axGx", t1:"Nay, Mirepeix, Lagos, Angaïs, Ousse, Sendets, rue de la Castagnère, Forêt du Lahitau, D39, Ouillon, Espéchède, D62, Saubole, D47, Gardères, Luquet, Pontacq, Saint Vincent, Coarraze et Nay", t2:"Espoey, Lagos, Bénéjacq et Nay"},
+  {id:"099", z:"Nord", d1:"71km", d2:"59km", u:"https://www.visugpx.com/q3g9vHfu3N", t1:"Nay, Mirepeix, Lagos, Lucgarier, Gomer, Nousty, Artigueloutan, Assat, Narcastet, Mazères, Coteaux de Guindalos, Gan, Rébénacq, Haut de Lys, Lys, Bruges, Asson et Nay", t2:"Beuste, Angaïs, Bordes, Narcastet et retour commun"}
+];
+
+// --- LOGIQUE APPLICATION ---
+
+let gpsMap, gpsMarker, gpsWatchId;
+let gpsLat, gpsLon;
+
+function switchPage(pageId, btnElement) {
+    window.scrollTo(0, 0);
+    
+    // Arrêter le GPS si on quitte l'onglet GPS pour économiser la batterie
+    if(pageId !== 'gps' && gpsWatchId) {
+        toggleGPS(true); // Force l'arrêt
+    }
+
+    document.querySelectorAll('.page-section').forEach(el => el.classList.remove('active'));
+    document.getElementById('page-' + pageId).classList.add('active');
+    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+    btnElement.classList.add('active');
+    
+    const titles = {'accueil':'Accueil','catalogue':'Catalogue','gps':'GPS & Position','vente':'Le Bon CCNay','newsletter':'Gazette','ffvelo':'Licence','urgence':'Urgence'};
+    document.getElementById('header-subtitle').innerText = titles[pageId];
+
+    // Initialiser la map GPS si nécessaire
+    if(pageId === 'gps' && !gpsMap) {
+        initGPSMap();
+    }
+}
+
+// --- LOGIQUE GPS ---
+function initGPSMap() {
+    gpsMap = L.map('gps-map').setView([43.1806, -0.2631], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap'
+    }).addTo(gpsMap);
+
+    // Vérifier si lien de partage reçu
+    const params = new URLSearchParams(window.location.search);
+    if (params.has('lat') && params.has('lon')) {
+        const plat = parseFloat(params.get('lat'));
+        const plon = parseFloat(params.get('lon'));
+        L.marker([plat, plon]).addTo(gpsMap).bindPopup("Position partagée").openPopup();
+        gpsMap.setView([plat, plon], 15);
+    }
+}
+
+function toggleGPS(forceStop = false) {
+    const btn = document.getElementById('btn-gps-toggle');
+    const shareBtn = document.getElementById('btn-gps-share');
+    const status = document.getElementById('gps-status');
+
+    if (gpsWatchId || forceStop) {
+        // ARRET
+        navigator.geolocation.clearWatch(gpsWatchId);
+        gpsWatchId = null;
+        if (gpsMarker) gpsMap.removeLayer(gpsMarker);
+        gpsMarker = null;
+        btn.innerText = "📍 Activer mon GPS";
+        btn.style.background = "var(--primary)";
+        shareBtn.style.display = "none";
+        status.innerText = "GPS Inactif";
+    } else {
+        // DEMARRAGE
+        status.innerText = "Recherche du signal...";
+        gpsWatchId = navigator.geolocation.watchPosition(
+            (pos) => {
+                gpsLat = pos.coords.latitude;
+                gpsLon = pos.coords.longitude;
+                if (!gpsMarker) {
+                    gpsMarker = L.circleMarker([gpsLat, gpsLon], {color: 'blue', radius: 10, fillOpacity: 0.8}).addTo(gpsMap);
+                } else {
+                    gpsMarker.setLatLng([gpsLat, gpsLon]);
+                }
+                gpsMap.setView([gpsLat, gpsLon], 15);
+                status.innerText = "Position actualisée";
+                shareBtn.style.display = "flex";
+            },
+            (err) => { 
+                alert("Erreur GPS : " + err.message); 
+                toggleGPS(true);
+            },
+            { enableHighAccuracy: true }
+        );
+        btn.innerText = "🛑 Arrêter le GPS";
+        btn.style.background = "var(--accent)";
+    }
+}
+
+function shareGPS() {
+    if (!gpsLat) return;
+    const url = `${window.location.origin}${window.location.pathname}?lat=${gpsLat}&lon=${gpsLon}`;
+    if (navigator.share) {
+        navigator.share({ title: 'Ma position - CC Nay', url: url });
+    } else {
+        prompt("Copiez ce lien pour partager :", url);
+    }
+}
+
+// --- LOGIQUE CATALOGUE ---
+function display(list) {
+    const grid = document.getElementById('grid');
+    grid.innerHTML = '';
+    const countEl = document.getElementById('count');
+    if(countEl) countEl.innerText = `${list.length} parcours disponibles`;
+    list.forEach(r => {
+        const c = document.createElement('div');
+        c.className = 'card';
+        c.innerHTML = `
+            <div class="card-header bg-${r.z}"><span>#${r.id}</span><span>${r.z.toUpperCase()}</span></div>
+            <div id="map-${r.id}" class="map-container"></div>
+            <div class="card-body">
+                <div class="badges"><span class="badge">🏁 ${r.d1}</span>${r.d2 ? `<span class="badge">🏁 ${r.d2}</span>`:''}</div>
+                <div class="trace-row"><span class="trace-label">Aller:</span> ${r.t1}</div>
+                <div class="trace-row"><span class="trace-label">Retour:</span> ${r.t2}</div>
+            </div>
+            <div class="card-footer">
+                <button class="btn btn-map" onclick="toggleMap('${r.id}','${r.u}')">👁️ Carte</button>
+                <a href="${r.u}" target="_blank" class="btn btn-dl">📥 GPX</a>
+            </div>`;
+        grid.appendChild(c);
+    });
+}
+
+function toggleMap(id, url) {
+    const c = document.getElementById('map-' + id);
+    if(!c.classList.contains('active')) {
+        c.classList.add('active');
+        c.innerHTML = `<iframe src="${url}?iframe" loading="lazy"></iframe>`;
+    } else { c.classList.remove('active'); c.innerHTML = ''; }
+}
+
+function filter() {
+    const q = document.getElementById('search').value.toLowerCase();
+    display(routes.filter(r => (r.id+r.z+r.t1+r.t2+r.d1).toLowerCase().includes(q)));
+}
+
+function sendAnnonceEmail() {
+    const t = document.getElementById('v-type').value;
+    const n = document.getElementById('v-nom').value;
+    const tel = document.getElementById('v-tel').value;
+    const tit = document.getElementById('v-titre').value;
+    const p = document.getElementById('v-prix').value;
+    const d = document.getElementById('v-desc').value;
+    if(!n || !tit) { alert("Nom et Titre requis"); return; }
+    const sub = encodeURIComponent("Annonce CCNAY [" + t + "] : " + tit);
+    const body = encodeURIComponent("Bonjour,\nVendeur: "+n+"\nTel: "+tel+"\nType: "+t+"\nObjet: "+tit+"\nPrix: "+p+"\n\nDescription:\n"+d);
+    window.location.href = "mailto:cercle.cyclo.nayais@gmail.com?subject=" + sub + "&body=" + body;
+}
+
+function handleLicenceUpload(input) {
+    const f = input.files[0];
+    const r = new FileReader();
+    r.onload = e => { 
+        localStorage.setItem('ccn_licence_data', e.target.result); 
+        localStorage.setItem('ccn_licence_type', f.type);
+        location.reload();
+    };
+    r.readAsDataURL(f);
+}
+
+function loadLicence() {
+    const d = localStorage.getItem('ccn_licence_data');
+    const t = localStorage.getItem('ccn_licence_type');
+    const container = document.getElementById('licence-container');
+    if(d && container) {
+        container.classList.add('has-file');
+        document.getElementById('licence-empty-state').style.display='none';
+        document.getElementById('btn-delete-licence').style.display='flex';
+        if(t && t.includes('pdf')) { 
+            document.getElementById('licence-pdf-preview').style.display='block'; 
+            document.getElementById('licence-pdf-preview').src = d; 
+        }
+        else { 
+            document.getElementById('licence-img-preview').style.display='block'; 
+            document.getElementById('licence-img-preview').src = d; 
+        }
+    }
+}
+
+function deleteLicence() { if(confirm("Supprimer la licence ?")) { localStorage.removeItem('ccn_licence_data'); location.reload(); } }
+function saveContact() { localStorage.setItem('ice', document.getElementById('ice-input').value); alert("Sauvegardé"); loadICE(); }
+function loadICE() {
+    const n = localStorage.getItem('ice');
+    const b = document.getElementById('btn-call-ice');
+    const input = document.getElementById('ice-input');
+    if(n && b && input) { input.value = n; b.href="tel:"+n; b.style.display="block"; }
+}
+
+document.addEventListener('DOMContentLoaded', () => { 
+    display(routes); 
+    loadLicence(); 
+    loadICE(); 
+    // Si on arrive via un lien de partage, ouvrir directement l'onglet GPS
+    if(window.location.search.includes('lat=')) {
+        switchPage('gps', document.querySelectorAll('.nav-item')[2]);
+    }
+});
+</script>
+</body>
+</html>
